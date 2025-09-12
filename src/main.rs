@@ -1,37 +1,23 @@
-use axum::{
-    routing::get,
-    Router
-};
+use axum::Router;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
+use tower_http::services::{ServeDir, ServeFile};
 use webbrowser;
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
+    let app = Router::new()
+        .route_service("/", ServeDir::new("dist")
+            .not_found_service(ServeFile::new("dist/index.html")
+        )
+    );
 
-   // bind the listener
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     let listener = TcpListener::bind(addr).await.unwrap();
 
-    // spawn the server into a background task
-    let server = axum::serve(listener, app);
-
-    tokio::spawn(async move {
-        if let Err(err) = server.await {
-            eprintln!("server error: {}", err);
-        }
-    });
-
-    // open the browser
     if webbrowser::open("http://localhost:3000").is_ok() {
-        println!("Opened in browser!");
+        println!("Opened browser at localhost:3000");
     }
 
-    // keep the main task alive
-    tokio::signal::ctrl_c()
-        .await
-        .expect("failed to listen for shutdown signal");
-    println!("Shutting down");
+    axum::serve(listener, app).await.unwrap();
 }
