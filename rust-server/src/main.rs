@@ -166,6 +166,7 @@ let unit =
     // create a move_order with arrival_time = now + 10s
     let arrival_time = (Utc::now() + chrono::Duration::seconds(10)).timestamp();
 
+    FIXME stop using SqliteRow entirely (recommended)
     let res = sqlx::query(
         r#"
         INSERT INTO move_orders (unit_id, from_x, from_y, to_x, to_y, arrival_time)
@@ -196,7 +197,7 @@ async fn api_events(
     Query(params): Query<std::collections::HashMap<String, String>>,
 ) -> Sse<impl futures::Stream<Item = Result<Event, axum::Error>>> {
     // subscribe to broadcast channel
-    let mut rx = state.sse_tx.subscribe();
+    let mut rx = state.notify.subscribe();
 
     // create a stream of axum SSE events
     let stream = async_stream::stream! {
@@ -226,20 +227,24 @@ async fn api_events(
 async fn run_worker(state: Arc<AppState>) {
     tracing::info!("worker started");
     let db = state.db.clone();
-    let tx = state.sse_tx.clone();
+    let tx = state.notify.clone();
 
     loop {
         // check for arrived move orders
         // arrival_time <= now
-        let now = Utc::now();
-        let orders = match sqlx::query(
-            r#"
+        let now = Utc::now().timestamp();
+        // let arrival_time = (Utc::now() + chrono::Duration::seconds(10)).timestamp();
+
+        let orders = match sqlx::query_as::<_, Unit>(
+        r#"
             SELECT id, unit_id, from_x, from_y, to_x, to_y, arrival_time as "arrival_time: DateTime<Utc>"
             FROM move_orders
             WHERE arrival_time <= ?
-            "#,
-            now
-        ).fetch_all(&db).await {
+            "#
+    )
+    .bind(now)
+
+       .fetch_all(&db).await {
             Ok(v) => v,
             Err(e) => {
                 tracing::error!("db error fetching orders: {}", e);
@@ -263,19 +268,20 @@ async fn run_worker(state: Arc<AppState>) {
     }
 }
 
-async fn process_arrival(order_row: sqlx::sqlite::SqliteRow, db: SqlitePool, tx: Sender<String>) -> anyhow::Result<()> {
+async fn process_arrival(order_row: Unit, db: SqlitePool, tx: Sender<String>) -> anyhow::Result<()> {
     // Rehydrate fields
     // Note: We used a query! macro earlier; here we accept a generic row.
     // But to simplify, re-query the order by id.
-    let id: i64 = order_row.try_get("id")?;
+    let id: i64 = order_row.id;
     let order = sqlx::query(
         r#"
-        SELECT id, unit_id, from_x, from_y, to_x, to_y, arrival_time as "arrival_time: DateTime<Utc>"
+        SELECT id, unit_id, from_x, from_y, to_x, to_y,
+            arrival_time as "arrival_time: DateTime<Utc>"
         FROM move_orders
         WHERE id = ?
-        "#,
-        id
+        "#
     )
+    .bind(id)
     .fetch_one(&db)
     .await?;
 
@@ -284,14 +290,11 @@ async fn process_arrival(order_row: sqlx::sqlite::SqliteRow, db: SqlitePool, tx:
     sqlx::query(
         r#"
         UPDATE units SET x = ?, y = ? WHERE id = ?
-        "#,
-        order.to_x,
-        order.to_y,
-        order.unit_id
-    ).execute(&mut *txn).await?;
-
-    sqlx::query("DELETE FROM move_orders WHERE id = ?", order.id)
-        .execute(&mut *txn).await?;
+        "#)
+        .bind(order.get("to_x"))
+        .bind(order.get("to_y"))
+        .bind(order.get("unit_id"))
+    .execute(&mut *txn).await?;
 
     txn.commit().await?;
 
@@ -299,27 +302,26 @@ async fn process_arrival(order_row: sqlx::sqlite::SqliteRow, db: SqlitePool, tx:
     let others = sqlx::query(
         r#"
         SELECT id, player_id FROM units WHERE x = ? AND y = ? AND id != ?
-        "#,
-        order.to_x,
-        order.to_y,
-        order.unit_id
-    )
+        "#)
+        .bind(order.get("to_x"))
+        .bind(order.get("to_y"))
+        .bind(order.get("unit_id"))
     .fetch_all(&db)
     .await?;
 
     if !others.is_empty() {
         // get this unit's player
-        let self_u = sqlx::query("SELECT player_id FROM units WHERE id = ?", order.unit_id)
+        let self_u = sqlx::query("SELECT player_id FROM units WHERE id = ?").bind(order.get("unit_id"))
             .fetch_one(&db)
             .await?;
 
         for other in others {
             let event = EncounterEvent {
                 r#type: "encounter".to_string(),
-                player_a: self_u.player_id,
-                player_b: other.player_id,
-                x: order.to_x,
-                y: order.to_y,
+                player_a: self_u.get("player_id"),
+                player_b: other.get("player_id"),
+                x: order.get("to_x"),
+                y: order.get("to_y"),
             };
             let json = serde_json::to_string(&event)?;
             // broadcast; ignoring if no listeners
