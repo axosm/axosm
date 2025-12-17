@@ -17,6 +17,7 @@ This creates game.db (SQLite), applies migrations, and seeds two players with ID
 ### Start frontend:
 
 cd frontend
+deno bundle --unstable --outdir .\dist .\client.ts
 deno run --allow-net --allow-read --unstable https://deno.land/std@0.205.0/http/file_server.ts
 
 

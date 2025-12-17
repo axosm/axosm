@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "build": "deno bundle client.ts client.js",
+    "dev": "deno bundle --watch client.ts client.js"
+  }
+}
