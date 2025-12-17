@@ -77,9 +77,12 @@ async fn main() -> anyhow::Result<()> {
     // logging
     let subscriber = FmtSubscriber::builder().with_max_level(tracing::Level::INFO).finish();
     tracing::subscriber::set_global_default(subscriber)?;
-
+// println!("Current working directory: {:?}", std::env::current_dir()?);
     // sqlite DB path (file)
-    let db = SqlitePool::connect("sqlite:game.db").await?;
+    // let db = SqlitePool::connect("sqlite:///C:/Users/Mathieu/AppData/Local/sci4x/game.db").await?;
+    let db = SqlitePool::connect("sqlite://./game.db?mode=rwc").await?;
+    
+    // let db = SqlitePool::connect("sqlite://./game.db").await?;
     sqlx::migrate!("./migrations").run(&db).await?;
 
     // broadcast channel for SSE
@@ -166,7 +169,6 @@ let unit =
     // create a move_order with arrival_time = now + 10s
     let arrival_time = (Utc::now() + chrono::Duration::seconds(10)).timestamp();
 
-    FIXME stop using SqliteRow entirely (recommended)
     let res = sqlx::query(
         r#"
         INSERT INTO move_orders (unit_id, from_x, from_y, to_x, to_y, arrival_time)
@@ -273,7 +275,7 @@ async fn process_arrival(order_row: Unit, db: SqlitePool, tx: Sender<String>) ->
     // Note: We used a query! macro earlier; here we accept a generic row.
     // But to simplify, re-query the order by id.
     let id: i64 = order_row.id;
-    let order = sqlx::query(
+    let order = sqlx::query_as::<_, MoveOrder>(
         r#"
         SELECT id, unit_id, from_x, from_y, to_x, to_y,
             arrival_time as "arrival_time: DateTime<Utc>"
@@ -291,37 +293,39 @@ async fn process_arrival(order_row: Unit, db: SqlitePool, tx: Sender<String>) ->
         r#"
         UPDATE units SET x = ?, y = ? WHERE id = ?
         "#)
-        .bind(order.get("to_x"))
-        .bind(order.get("to_y"))
-        .bind(order.get("unit_id"))
+        .bind(order.to_x)
+        .bind(order.to_y)
+        .bind(order.unit_id)
     .execute(&mut *txn).await?;
 
     txn.commit().await?;
 
     // check for encounter: any other unit on same tile
-    let others = sqlx::query(
+    let others = sqlx::query_as::<_, Unit>(
         r#"
         SELECT id, player_id FROM units WHERE x = ? AND y = ? AND id != ?
         "#)
-        .bind(order.get("to_x"))
-        .bind(order.get("to_y"))
-        .bind(order.get("unit_id"))
+        .bind(order.to_x)
+        .bind(order.to_y)
+        .bind(order.unit_id)
     .fetch_all(&db)
     .await?;
 
     if !others.is_empty() {
         // get this unit's player
-        let self_u = sqlx::query("SELECT player_id FROM units WHERE id = ?").bind(order.get("unit_id"))
+        let self_player: (i64,) = sqlx::query_as(
+            "SELECT player_id FROM units WHERE id = ?")
+        .bind(order.unit_id)
             .fetch_one(&db)
             .await?;
 
         for other in others {
             let event = EncounterEvent {
                 r#type: "encounter".to_string(),
-                player_a: self_u.get("player_id"),
-                player_b: other.get("player_id"),
-                x: order.get("to_x"),
-                y: order.get("to_y"),
+                player_a: self_player.0,
+                player_b: other.player_id,
+                x: order.to_x,
+                y: order.to_y,
             };
             let json = serde_json::to_string(&event)?;
             // broadcast; ignoring if no listeners
@@ -333,5 +337,5 @@ async fn process_arrival(order_row: Unit, db: SqlitePool, tx: Sender<String>) ->
     Ok(())
 }
 
-// helper to extract column safely in process_arrival (SqliteRow access)
-use sqlx::Row;
+// // helper to extract column safely in process_arrival (SqliteRow access)
+// use sqlx::Row;
