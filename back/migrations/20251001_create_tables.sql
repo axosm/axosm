@@ -1,3 +1,5 @@
+--https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
+
 -- 20251001_create_tables.sql
 CREATE TABLE IF NOT EXISTS players (
   id INTEGER PRIMARY KEY,
