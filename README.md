@@ -4,22 +4,19 @@
 
 ## Usage / Testing
 
-### Start Rust server:
-
 From https://chatgpt.com/c/692ad77a-dac4-832d-a152-77d026642e32
 
-cd rust-server
-cargo run --release
+### Start Rust server:
 
+cd back
+cargo run --release
 
 This creates game.db (SQLite), applies migrations, and seeds two players with IDs 1 and 2.
 
 ### Start frontend:
 
-cd frontend
-deno bundle --unstable --outdir .\dist .\client.ts
-deno run --allow-net --allow-read --unstable https://deno.land/std@0.205.0/http/file_server.ts
-
+cd front
+npx vite
 
 Open http://127.0.0.1:8000 in your browser.
 
