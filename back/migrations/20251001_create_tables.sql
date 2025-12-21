@@ -1,34 +1,131 @@
 --https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
 
+
 -- 20251001_create_tables.sql
+
+
+CREATE TABLE galaxies (
+  id INTEGER PRIMARY KEY,
+  seed INTEGER NOT NULL
+);
+
+CREATE TABLE star_systems (
+  id INTEGER PRIMARY KEY,
+  galaxy_id INTEGER NOT NULL,
+  gx INTEGER NOT NULL,
+  gy INTEGER NOT NULL,
+  gz INTEGER NOT NULL,
+  seed INTEGER NOT NULL,
+  UNIQUE(galaxy_id, gx, gy, gz),
+  FOREIGN KEY(galaxy_id) REFERENCES galaxies(id)
+);
+
+CREATE TABLE planets (
+  id INTEGER PRIMARY KEY,
+  star_system_id INTEGER NOT NULL,
+  orbit_index INTEGER NOT NULL,
+  radius INTEGER NOT NULL,
+  subdivision INTEGER NOT NULL, -- Goldberg resolution (N)
+  seed INTEGER NOT NULL,
+  FOREIGN KEY(star_system_id) REFERENCES star_systems(id)
+);
+
 CREATE TABLE IF NOT EXISTS players (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS units (
+-- CREATE TABLE IF NOT EXISTS units (
+--   id INTEGER PRIMARY KEY,
+--   player_id INTEGER NOT NULL,
+--   x INTEGER NOT NULL,
+--   y INTEGER NOT NULL,
+--   FOREIGN KEY(player_id) REFERENCES players(id)
+-- );
+CREATE TABLE units (
   id INTEGER PRIMARY KEY,
   player_id INTEGER NOT NULL,
-  x INTEGER NOT NULL,
-  y INTEGER NOT NULL,
+  unit_type TEXT NOT NULL,
+  location_type TEXT NOT NULL, -- 'PLANET_SURFACE', 'ORBIT', 'SPACE'
   FOREIGN KEY(player_id) REFERENCES players(id)
 );
 
-CREATE TABLE IF NOT EXISTS move_orders (
+CREATE TABLE unit_planet_locations (
+  unit_id INTEGER PRIMARY KEY,
+  planet_id INTEGER NOT NULL,
+  face INTEGER NOT NULL,
+  u INTEGER NOT NULL,
+  v INTEGER NOT NULL,
+  FOREIGN KEY(unit_id) REFERENCES units(id),
+  FOREIGN KEY(planet_id) REFERENCES planets(id)
+);
+
+-- CREATE TABLE IF NOT EXISTS move_orders (
+--   id INTEGER PRIMARY KEY,
+--   unit_id INTEGER NOT NULL,
+--   from_x INTEGER NOT NULL,
+--   from_y INTEGER NOT NULL,
+--   to_x INTEGER NOT NULL,
+--   to_y INTEGER NOT NULL,
+--   arrival_time INTEGER NOT NULL,
+--   FOREIGN KEY(unit_id) REFERENCES units(id)
+-- );
+CREATE TABLE move_orders (
   id INTEGER PRIMARY KEY,
   unit_id INTEGER NOT NULL,
-  from_x INTEGER NOT NULL,
-  from_y INTEGER NOT NULL,
-  to_x INTEGER NOT NULL,
-  to_y INTEGER NOT NULL,
+  from_face INTEGER NOT NULL,
+  from_u INTEGER NOT NULL,
+  from_v INTEGER NOT NULL,
+  to_face INTEGER NOT NULL,
+  to_u INTEGER NOT NULL,
+  to_v INTEGER NOT NULL,
+  start_time INTEGER NOT NULL,
   arrival_time INTEGER NOT NULL,
   FOREIGN KEY(unit_id) REFERENCES units(id)
 );
 
+
+
+-- Future: Orbital / Space Location (DO NOT USE YET)
+-- When you are ready, you add this without touching existing tables.
+-- CREATE TABLE unit_space_locations (
+--   unit_id INTEGER PRIMARY KEY,
+--   star_system_id INTEGER NOT NULL,
+--   x REAL NOT NULL,
+--   y REAL NOT NULL,
+--   z REAL NOT NULL,
+--   FOREIGN KEY(unit_id) REFERENCES units(id),
+--   FOREIGN KEY(star_system_id) REFERENCES star_systems(id)
+-- );
+
+
+-- Why This Schema Works Long-Term
+-- Planet → Space Transition
+-- DELETE FROM unit_planet_locations
+-- INSERT INTO unit_space_locations
+-- UPDATE units.location_type = 'SPACE'
+
+
+-- Interstellar Travel Later
+-- You will add:
+-- CREATE TABLE unit_ftl_travel (
+--   unit_id INTEGER PRIMARY KEY,
+--   from_system INTEGER NOT NULL,
+--   to_system INTEGER NOT NULL,
+--   progress REAL NOT NULL
+-- );
+
+
+-- Indexes You Should Add Early
+-- CREATE INDEX idx_units_player ON units(player_id);
+-- CREATE INDEX idx_planet_location_planet ON unit_planet_locations(planet_id);
+-- CREATE INDEX idx_move_orders_unit ON move_orders(unit_id);
+
+
 -- seed two players + units (for prototype)
-INSERT OR IGNORE INTO players (id, name) VALUES (1, 'Player 1');
-INSERT OR IGNORE INTO players (id, name) VALUES (2, 'Player 2');
+-- INSERT OR IGNORE INTO players (id, name) VALUES (1, 'Player 1');
+-- INSERT OR IGNORE INTO players (id, name) VALUES (2, 'Player 2');
 
 -- place player 1 at (2,2) and player 2 at (5,5)
-INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (1, 1, 2, 2);
-INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (2, 2, 5, 5);
+-- INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (1, 1, 2, 2);
+-- INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (2, 2, 5, 5);
