@@ -1,5 +1,9 @@
+
+--seed
 --https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
 
+--game initialization
+--https://chatgpt.com/c/694a89aa-057c-832d-8ece-daad0c98a051
 
 -- 20251001_create_tables.sql
 
@@ -35,6 +39,7 @@ CREATE TABLE IF NOT EXISTS players (
   name TEXT NOT NULL
 );
 
+-- old schema
 -- CREATE TABLE IF NOT EXISTS units (
 --   id INTEGER PRIMARY KEY,
 --   player_id INTEGER NOT NULL,
@@ -60,6 +65,7 @@ CREATE TABLE unit_planet_locations (
   FOREIGN KEY(planet_id) REFERENCES planets(id)
 );
 
+-- old schema
 -- CREATE TABLE IF NOT EXISTS move_orders (
 --   id INTEGER PRIMARY KEY,
 --   unit_id INTEGER NOT NULL,
