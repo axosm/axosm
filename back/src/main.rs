@@ -339,3 +339,105 @@ async fn process_arrival(order_row: Unit, db: SqlitePool, tx: Sender<String>) ->
 
 // // helper to extract column safely in process_arrival (SqliteRow access)
 // use sqlx::Row;
+
+
+
+// ##########################################  hash generation ##################################
+// see --https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
+
+// use xxhash_rust::xxh3::xxh3_64;
+
+
+// const GENERATION_VERSION: u64 = 1;
+// const WORLD_SEED: u64 = 1;
+
+// // Galaxy
+// const GALAXY_TAG: u64 = 1;
+
+// // Star system
+// const SYSTEM_TAG: u64 = 10;
+// const SYSTEM_EXISTS_TAG: u64 = 11;
+// const STAR_TYPE_TAG: u64 = 12;
+// const PLANET_COUNT_TAG: u64 = 13;
+
+// // Planet
+// const PLANET_TAG: u64 = 20;
+// const PLANET_TYPE_TAG: u64 = 21;
+
+// // Tile
+// const TILE_TAG: u64 = 100;
+// const TILE_HEIGHT_TAG: u64 = 101;
+// const TILE_BIOME_TAG: u64 = 102;
+
+
+
+// fn hash64(values: &[u64]) -> u64 {
+//     let mut bytes = Vec::new();
+//     for v in values {
+//         bytes.extend_from_slice(&v.to_le_bytes());
+//     }
+//     xxh3_64(&bytes)
+// }
+
+// planet_count = hash_values(&[
+//     GENERATION_VERSION,
+//     WORLD_SEED,
+//     PLANET_COUNT_TAG,
+// ]);
+
+// worldSeed = 12345
+
+// galaxySeed = 12345
+// systemSeed = hash(12345, 10, -3, 7)
+// planetSeed = hash(systemSeed, "planet", 2)
+// tileSeed   = hash(planetSeed, 4, 12, 9)
+
+// height     = noise(hash(tileSeed, "height"))
+
+
+// system_seed = hash(
+//     galaxy_seed,   // parent
+//     SYSTEM_TAG,    // what this is
+//     gx, gy, gz     // which system
+// );
+
+// planet_seed = hash(
+//     system_seed,
+//     PLANET_TAG,    // same for all planets
+//     orbit_index    // distinguishes them
+// );
+
+// tile_seed = hash(
+//     planet_seed,
+//     TILE_TAG,      // same for all tiles
+//     face, u, v     // distinguishes them
+// );
+
+// system_seed = hash(42, 2, 10, -3, 7)
+
+// let exists = hash(system_seed, EXISTS_TAG) % 100 < 30;
+// let star_type = hash(system_seed, STAR_TYPE_TAG) % 5;
+// let planet_count = hash(system_seed, PLANET_COUNT_TAG) % 12;
+
+// ######################### hash for Objects in the Star System ###################
+//
+// const SYSTEM_OBJECT_COUNT_TAG: u64 = 200;
+// const SYSTEM_OBJECT_TYPE_TAG:  u64 = 201;
+// const SYSTEM_OBJECT_POS_TAG:   u64 = 202;
+// Then:
+
+// rust
+// Copier le code
+// let object_count =
+//     hash(system_seed, SYSTEM_OBJECT_COUNT_TAG) % 20;
+
+// for i in 0..object_count {
+//     let object_seed =
+//         hash(system_seed, SYSTEM_OBJECT_TAG, i as u64);
+
+//     let object_type =
+//         hash(object_seed, SYSTEM_OBJECT_TYPE_TAG) % NUM_TYPES;
+
+//     let position =
+//         hash(object_seed, SYSTEM_OBJECT_POS_TAG);
+// }

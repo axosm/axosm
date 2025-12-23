@@ -18,3 +18,5 @@ uuid = { version = "1.4", features = ["v4", "serde"] }
 futures-util = "0.3"
 futures = "0.3"
 async-stream = "0.3"
+
+xxhash-rust = "=0.8.10"
