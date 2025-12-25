@@ -39,13 +39,65 @@ use futures_util::stream::{Stream, StreamExt};
 use std::convert::Infallible;
 use tokio_stream::wrappers::ReceiverStream;
 
-mod api;
-mod app;
+#[derive(Clone)]
+struct AppState {
+    db:SqlitePool,
+    notify: broadcast::Sender<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, FromRow)]
+struct Player {
+    id: i64,
+    name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, FromRow)]
+struct Unit {
+    id: i64,
+    player_id: i64,
+    x: i32,
+    y: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, FromRow)]
+struct MoveOrder {
+    id: i64,
+    unit_id: i64,
+    from_x: i32,
+    from_y: i32,
+    to_x: i32,
+    to_y: i32,
+    arrival_time: i64, // Unix timestamp (seconds)
+}
+
+#[derive(Deserialize)]
+struct MoveRequest {
+    player_id: i64,
+    unit_id: i64,
+    to_x: i32,
+    to_y: i32,
+}
+
+#[derive(Serialize)]
+struct StateResponse {
+    units: Vec<Unit>,
+    now: DateTime<Utc>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct EncounterEvent {
+    r#type: String,
+    player_a: i64,
+    player_b: i64,
+    x: i32,
+    y: i32,
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // logging
-    app::init_tracing()?;
+    let subscriber = FmtSubscriber::builder().with_max_level(tracing::Level::INFO).finish();
+    tracing::subscriber::set_global_default(subscriber)?;
 // println!("Current working directory: {:?}", std::env::current_dir()?);
     // sqlite DB path (file)
     // let db = SqlitePool::connect("sqlite:///C:/Users/Mathieu/AppData/Local/sci4x/game.db").await?;
