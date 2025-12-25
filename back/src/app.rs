@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::{Router, routing::{get, post}};
+use chrono::Utc;
 use sqlx::{SqlitePool};
 
 use anyhow::Result;
@@ -29,6 +30,25 @@ pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
     let (tx, _) = broadcast::channel(128);
 
     Ok(Arc::new(AppState { db, notify: tx }))
+}
+
+pub fn spawn_worker(state: Arc<AppState>) {
+    tokio::spawn(async move {
+        if let Err(e) = run_worker(state).await {
+            tracing::error!("worker failed: {:?}", e);
+        }
+    });
+}
+
+// Background worker that checks move_orders and resolves arrivals
+async fn run_worker(state: Arc<AppState>) {
+    tracing::info!("worker started");
+    let db = state.db.clone();
+    let tx = state.notify.clone();
+
+    loop {
+       
+    }
 }
 
 pub fn router(state: Arc<AppState>) -> Router {
