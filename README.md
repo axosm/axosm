@@ -22,10 +22,14 @@ Open http://127.0.0.1:8000 in your browser.
 
 ### In browser:
 
-Use Player ID 1 for first window — click Connect SSE.
+Invoke-WebRequest : The remote server returned an error: (404) Not Found.
+At line:1 char:1
++ Invoke-WebRequest -Uri http://localhost:3000/api/state/1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest], WebExc
+   eption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand
 
-Open a second window/tab to the same page and set Player ID to 2 and click Connect SSE.
+### PowerShell commands
 
-Click a tile to move a unit; movement arrival is 10 seconds after you click (server schedules arrival_time = now + 10s).
-
-When both units end in same tile (after arrival), both connected clients will receive an SSE encounter event.
+Invoke-WebRequest -Uri http://localhost:3000/api/state/1

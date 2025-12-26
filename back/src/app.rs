@@ -15,8 +15,6 @@ pub struct AppState {
     pub notify: broadcast::Sender<String>,
 }
 
-
-
 pub fn init_tracing() -> Result<()> {
     let subscriber = FmtSubscriber::builder().with_max_level(tracing::Level::INFO).finish();
     tracing::subscriber::set_global_default(subscriber)?;
@@ -32,29 +30,29 @@ pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
     Ok(Arc::new(AppState { db, notify: tx }))
 }
 
-pub fn spawn_worker(state: Arc<AppState>) {
-    tokio::spawn(async move {
-        if let Err(e) = run_worker(state).await {
-            tracing::error!("worker failed: {:?}", e);
-        }
-    });
-}
+// pub fn spawn_worker(state: Arc<AppState>) {
+//     tokio::spawn(async move {
+//         if let Err(e) = run_worker(state).await {
+//             tracing::error!("worker failed: {:?}", e);
+//         }
+//     });
+// }
 
-// Background worker that checks move_orders and resolves arrivals
-async fn run_worker(state: Arc<AppState>) {
-    tracing::info!("worker started");
-    let db = state.db.clone();
-    let tx = state.notify.clone();
+// // Background worker that checks move_orders and resolves arrivals
+// async fn run_worker(state: Arc<AppState>) {
+//     tracing::info!("worker started");
+//     let db = state.db.clone();
+//     let tx = state.notify.clone();
 
-    loop {
+//     loop {
        
-    }
-}
+//     }
+// }
 
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
-        .route("/api/state", get(api::state::handler))
-        .route("/api/move", post(api::move_unit::handler))
-        .route("/api/events", get(api::events::handler))
+        .route("/api/state/{player_id}", get(api::state::get_state))
+        // .route("/api/move", post(api::move_unit::handler))
+        // .route("/api/events", get(api::events::handler))
         .with_state(state)
 }

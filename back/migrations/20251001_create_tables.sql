@@ -152,3 +152,44 @@ CREATE TABLE move_orders (
 --   rotation INTEGER NOT NULL, -- 0..5 for face orientation, or quaternion index
 --   PRIMARY KEY (player_id, planet_id)
 -- );
+
+
+INSERT INTO players (id, name) VALUES
+  (1, 'Player One'),
+  (2, 'Player Two');
+
+
+INSERT INTO galaxies (id, seed) VALUES
+  (1, 123456),
+  (2, 987654);
+
+
+INSERT INTO star_systems (id, galaxy_id, gx, gy, gz, seed) VALUES
+  (1, 1, 0, 0, 0, 111),
+  (2, 1, 1, 0, 0, 222),
+  (3, 2, 0, 1, 0, 333);
+
+
+INSERT INTO planets (
+  id,
+  star_system_id,
+  orbit_index,
+  radius,
+  subdivision,
+  seed
+) VALUES
+  (1, 1, 0, 6371, 3, 1001),
+  (2, 1, 1, 3390, 3, 1002),
+  (3, 2, 0, 7000, 4, 2001);
+
+
+INSERT INTO units (id, player_id, unit_type, location_type) VALUES
+  (1, 1, 'INFANTRY', 'PLANET_SURFACE'),
+  (2, 1, 'TANK',     'PLANET_SURFACE'),
+  (3, 1, 'FLEET',    'ORBIT'),
+  (4, 1, 'SCOUT',    'SPACE');
+
+
+INSERT INTO unit_planet_locations (unit_id, planet_id, face, u, v) VALUES
+  (1, 1, 0, 10, 5),
+  (2, 1, 2, 3, 7);

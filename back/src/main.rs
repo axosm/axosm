@@ -39,8 +39,9 @@ use futures_util::stream::{Stream, StreamExt};
 use std::convert::Infallible;
 use tokio_stream::wrappers::ReceiverStream;
 
-mod api;
 mod app;
+mod api;
+mod db;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -48,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
     app::init_tracing()?;
 
     let state = app::init_state().await?;
-    app::spawn_worker(state.clone());
+    // app::spawn_worker(state.clone());
 
     let app = app::router(state);
 
