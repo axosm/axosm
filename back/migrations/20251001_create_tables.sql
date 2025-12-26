@@ -135,3 +135,20 @@ CREATE TABLE move_orders (
 -- place player 1 at (2,2) and player 2 at (5,5)
 -- INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (1, 1, 2, 2);
 -- INSERT OR IGNORE INTO units (id, player_id, x, y) VALUES (2, 2, 5, 5);
+
+
+-- https://chatgpt.com/c/694dd80b-260c-8331-8f03-ce07eb2c7307
+-- problem : If the client receives canonical coordinates (face, u, v), the client can reconstruct absolute planetary geography and infer the seed.
+-- solution 1 (recommended): player-local coordinate frames
+-- For each player–planet pair, define a local frame:
+-- An arbitrary origin (face₀, u₀, v₀)
+-- An arbitrary rotation / orientation
+-- CREATE TABLE player_planet_frames (
+--   player_id INTEGER NOT NULL,
+--   planet_id INTEGER NOT NULL,
+--   origin_face INTEGER NOT NULL,
+--   origin_u INTEGER NOT NULL,
+--   origin_v INTEGER NOT NULL,
+--   rotation INTEGER NOT NULL, -- 0..5 for face orientation, or quaternion index
+--   PRIMARY KEY (player_id, planet_id)
+-- );
