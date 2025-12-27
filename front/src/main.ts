@@ -2,25 +2,89 @@ import './style.css'
 import typescriptLogo from './typescript.svg'
 import viteLogo from '/vite.svg'
 import { setupCounter } from './counter.ts'
+import type { UnitDTO } from './dto/UnitDTO.ts';
+import { initWebGPU } from "./render/webgpu";
+import { loadGameState } from "./api/gameState";
+import { buildUnitInstances } from "./world/units";
+import { createUnitMesh } from "./render/unitMesh";
+import { createPipeline } from "./render/pipeline";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+// https://chatgpt.com/c/69505688-e8c4-832d-a08d-4e039161d0c8
+// project generation
+// see Common pitfalls to avoid with web gpu
+// Do not compute tiles in shaders initially
+// Do not use lat/long as primary storage => seems logic, we use face, u and v
+// Do not rebuild GPU pipelines per frame
+// Normalize vectors after subdivision, not before
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+async function main() {
+  const canvas = document.querySelector("canvas")!;
+  const { device, context, format } = await initWebGPU(canvas);
 
-fetch('/api/users');
+  const units = await loadGameState(1);
+  const instances = buildUnitInstances(units);
+
+  const instanceData = new Float32Array(
+    instances.flatMap(i => [...i.position, i.scale])
+  );
+
+  const instanceBuffer = device.createBuffer({
+    size: instanceData.byteLength,
+    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+  });
+
+  device.queue.writeBuffer(instanceBuffer, 0, instanceData);
+
+  const vertexBuffer = createUnitMesh(device);
+  const pipeline = createPipeline(device, format);
+
+  function frame() {
+    const encoder = device.createCommandEncoder();
+    const view = context.getCurrentTexture().createView();
+
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [{
+        view,
+        loadOp: "clear",
+        storeOp: "store",
+        clearValue: { r: 0, g: 0, b: 0.1, a: 1 },
+      }],
+    });
+
+    pass.setPipeline(pipeline);
+    pass.setVertexBuffer(0, vertexBuffer);
+    pass.setVertexBuffer(1, instanceBuffer);
+    pass.draw(3, instances.length);
+    pass.end();
+
+    device.queue.submit([encoder.finish()]);
+    requestAnimationFrame(frame);
+  }
+
+  frame();
+}
+
+main();
+
+
+// document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+//   <div>
+//     <a href="https://vite.dev" target="_blank">
+//       <img src="${viteLogo}" class="logo" alt="Vite logo" />
+//     </a>
+//     <a href="https://www.typescriptlang.org/" target="_blank">
+//       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
+//     </a>
+//     <h1>Vite + TypeScript</h1>
+//     <div class="card">
+//       <button id="counter" type="button"></button>
+//     </div>
+//     <p class="read-the-docs">
+//       Click on the Vite and TypeScript logos to learn more
+//     </p>
+//   </div>
+// `
+
+// setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+
+// fetch('/api/users');
