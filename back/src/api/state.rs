@@ -18,6 +18,7 @@ pub async fn get_state(
     State(state): State<Arc<AppState>>,
     Path(player_id): Path<i64>,
 ) -> Result<Json<Vec<Unit>>, (StatusCode, String)> {
+      println!("get_state called with player_id: {}", player_id);
     let rows = db::queries::find_units(&state.db, player_id)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
