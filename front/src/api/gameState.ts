@@ -12,7 +12,7 @@ export interface UnitDTO {
 }
 
 export async function loadGameState(playerId: number): Promise<UnitDTO[]> {
-  const res = await fetch(`http://localhost:3000/api/state/${playerId}`);
+  const res = await fetch(`/api/state/${playerId}`);
   if (!res.ok) {
     throw new Error("Failed to load game state");
   }

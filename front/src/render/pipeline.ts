@@ -1,4 +1,4 @@
-import unitShader from "../shaders/units.wgsl?raw";
+import unitShader from "../shader/units.wgsl?raw";
 
 export function createPipeline(
   device: GPUDevice,

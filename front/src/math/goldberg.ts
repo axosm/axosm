@@ -1,4 +1,4 @@
-import { Vec3, add, scale, normalize } from "./vec3";
+import { type Vec3, add, scale, normalize } from "./vec3";
 
 const t = (1 + Math.sqrt(5)) / 2;
 
