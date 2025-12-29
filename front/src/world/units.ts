@@ -10,6 +10,7 @@ export interface UnitInstance {
 }
 
 export function buildUnitInstances(units: UnitDTO[]): UnitInstance[] {
+  console.log(units);
   return units.map(u => {
     const p = pointOnFace(
       u.location.face,

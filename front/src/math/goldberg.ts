@@ -48,6 +48,7 @@ export function pointOnFace(
   v: number,
   n: number
 ): Vec3 {
+  console.log(ICOSAHEDRON_FACES)
   const [i0, i1, i2] = ICOSAHEDRON_FACES[face];
   const v0 = ICOSAHEDRON_VERTICES[i0];
   const v1 = ICOSAHEDRON_VERTICES[i1];
