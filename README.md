@@ -33,3 +33,9 @@ At line:1 char:1
 ### PowerShell commands
 
 Invoke-WebRequest -Uri http://localhost:3000/api/state/1
+
+TODO
+- continue tauri tuto : https://v2.tauri.app/start/create-project/
+- do vue tuto
+- add vue to the project
+- add tauri to the project : https://v2.tauri.app/start/create-project/#manual-setup-tauri-cli

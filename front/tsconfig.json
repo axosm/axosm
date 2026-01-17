@@ -1,26 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable", "DOM.WebGPU"],
-    "types": ["vite/client"],
-    "skipLibCheck": true,
+    // General
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "target": "ESNext",
 
-    /* Bundler mode */
+    // Modules
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
     "noEmit": true,
 
-    /* Linting */
+    // Type Checking & Safety
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
-  },
-  "include": ["src"]
+    "types": ["vite/client"]
+  }
 }
