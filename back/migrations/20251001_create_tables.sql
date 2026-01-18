@@ -1,9 +1,4 @@
 
---seed
---https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
-
---game initialization
---https://chatgpt.com/c/694a89aa-057c-832d-8ece-daad0c98a051
 
 -- 20251001_create_tables.sql
 

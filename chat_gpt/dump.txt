@@ -1,0 +1,17 @@
+
+
+2026-01-18
+units inside tiles vs tile inside inits
+fast lookup index
+solid js exemples
+https://chatgpt.com/share/696c2154-85b8-8010-a1bc-463a2abcd4b5
+
+
+2025
+seed
+https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
+
+
+2025
+game initialization
+https://chatgpt.com/c/694a89aa-057c-832d-8ece-daad0c98a051

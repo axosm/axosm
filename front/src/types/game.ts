@@ -14,3 +14,16 @@ export type Unit = {
 export type TileWithUnits = Tile & {
   units: Unit[]
 }
+
+
+  id: number;
+  player_id: number;
+  unit_type: "INFANTRY";
+  location: {
+    location_type: "PlanetSurface";
+    planet_id: number;
+    face: number;
+    u: number;
+    v: number;
+  };
+}
