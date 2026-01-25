@@ -1,9 +1,12 @@
 // src/three/grid.ts
 import * as THREE from "three"
-import { fetchTile } from "../api/gameApi"
-import { setGameState } from "../state/gameStore"
+import { gameState } from "../state/gameStore"
 
 export function createGrid(scene: THREE.Scene) {
+
+  // Access unitsWithTile from game state
+  console.log("Units available:", gameState.units)
+  
   const size = 10
 
   for (let x = 0; x < size; x++) {
@@ -20,4 +23,5 @@ export function createGrid(scene: THREE.Scene) {
       scene.add(tile)
     }
   }
+
 }

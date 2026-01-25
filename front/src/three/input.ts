@@ -1,6 +1,6 @@
 // src/three/input.ts
 import * as THREE from "three"
-import { fetchTile } from "../api/gameApi"
+import { fetchUnits } from "../api/gameApi"
 import { setGameState } from "../state/gameStore"
 
 export function setupPicking(
@@ -18,10 +18,11 @@ export function setupPicking(
     raycaster.setFromCamera(mouse, camera)
     const hits = raycaster.intersectObjects(scene.children)
 
-    if (hits.length) {
-      const tileId = hits[0].object.userData.tileId
-      const tile = await fetchTile(tileId)
-      setGameState("selectedTile", tile)
-    }
+    // TODO
+    // if (hits.length) {
+    //   const tileId = hits[0].object.userData.tileId
+    //   const tile = await fetchUnits(tileId)
+    //   setGameState("selectedTile", tile)
+    // }
   })
 }

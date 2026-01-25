@@ -10,7 +10,7 @@ export function UnitPopup() {
         <ul>
           {gameState.selectedTile!.units.map(u => (
             <li class="border-b border-gray-600 py-1">
-              {u.name} (STR {u.strength})
+              {u.id} (PLAYER {u.player_id}, TYPE: {u.unit_type})
             </li>
           ))}
         </ul>
