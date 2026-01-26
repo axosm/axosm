@@ -1,0 +1,90 @@
+[
+   {
+      "id" : 1,
+      "location" : {
+         "face" : 0,
+         "location_type" : "PlanetSurface",
+         "planet_id" : 1,
+         "u" : 10,
+         "v" : 5
+      },
+      "player_id" : 1,
+      "unit_type" : "INFANTRY"
+   },
+   {
+      "id" : 2,
+      "location" : {
+         "face" : 2,
+         "location_type" : "PlanetSurface",
+         "planet_id" : 1,
+         "u" : 3,
+         "v" : 7
+      },
+      "player_id" : 1,
+      "unit_type" : "TANK"
+   },
+   {
+      "id" : 3,
+      "location" : {
+         "location_type" : "Orbit"
+      },
+      "player_id" : 1,
+      "unit_type" : "FLEET"
+   },
+   {
+      "id" : 4,
+      "location" : {
+         "location_type" : "Space"
+      },
+      "player_id" : 1,
+      "unit_type" : "SCOUT"
+   }
+
+https://chatgpt.com/c/6977d842-33a8-8386-8f4d-e8f3f7cd396c
+refacto api state
+
+{
+   "planet_id": 1,
+   "tiles": {
+        "face" : 0,
+        "location_type" : "PlanetSurface",
+        "planet_id" : 1,
+        "u" : 10,
+        "v" : 5
+      },
+    "units": [
+    {
+        "id" : 1,
+        "location" : {
+        "player_id" : 1,
+        "unit_type" : "SOLDIER"
+
+   },
+   {
+      "id" : 2,
+      "location" : {
+         "face" : 2,
+         "location_type" : "PlanetSurface",
+         "planet_id" : 1,
+         "u" : 3,
+         "v" : 7
+      },
+      "player_id" : 1,
+      "unit_type" : "TANK"
+   },
+   {
+      "id" : 3,
+      "location" : {
+         "location_type" : "Orbit"
+      },
+      "player_id" : 1,
+      "unit_type" : "FLEET"
+   },
+   {
+      "id" : 4,
+      "location" : {
+         "location_type" : "Space"
+      },
+      "player_id" : 1,
+      "unit_type" : "SCOUT"
+   }
