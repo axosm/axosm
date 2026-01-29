@@ -1,4 +1,8 @@
 
+2026-01-29
+How to create a colormap like civilization hexagonal terrain ? 
+https://www.reddit.com/r/proceduralgeneration/comments/1qqdyti/how_to_create_a_colormap_like_civilization/
+https://catlikecoding.com/unity/tutorials/hex-map/part-14/
 
 2026-01-18
 units inside tiles vs tile inside inits
