@@ -46,7 +46,6 @@ impl From<UnitWithPlanetLocationRow> for Unit {
     }
 }
 
-
 // #[derive(Deserialize)]
 // pub struct MoveRequest {
 //     player_id: i64,
