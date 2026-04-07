@@ -3,6 +3,8 @@ import * as THREE from "three";
 
 aaaa https://claude.ai/share/34acb4d5-73a6-482c-b505-0049de5d6e26
 
+
+
 const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
 
 // Scene
