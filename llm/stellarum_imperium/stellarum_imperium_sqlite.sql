@@ -38,66 +38,68 @@ CREATE TABLE users (
 -- ─────────────────────────────────────────────────────────────
 
 CREATE TABLE galaxies (
-    id          INTEGER     PRIMARY KEY AUTOINCREMENT,
-    seed        INTEGER     NOT NULL,
-    name        TEXT        NOT NULL,
-    radius      REAL        NOT NULL,
-    created_at  TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at  TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+    seed        INTEGER  NOT NULL,
+    name        TEXT     NOT NULL,
+    radius      REAL     NOT NULL,
+    x           REAL     NOT NULL,   -- universe coordinates
+    y           REAL     NOT NULL,
+    z           REAL     NOT NULL,
+    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 CREATE TABLE solar_systems (
-    id          INTEGER     PRIMARY KEY AUTOINCREMENT,
-    galaxy_id   INTEGER     NOT NULL REFERENCES galaxies(id),
-    seed        INTEGER     NOT NULL,
-    name        TEXT        NOT NULL,
-    x           REAL        NOT NULL,
-    y           REAL        NOT NULL,
+    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+    galaxy_id   INTEGER  NOT NULL REFERENCES galaxies(id),
+    seed        INTEGER  NOT NULL,
+    name        TEXT     NOT NULL,
+    x           REAL     NOT NULL,   -- coordinates within the galaxy
+    y           REAL     NOT NULL,
+    z           REAL     NOT NULL,   -- add z: galaxies are 3D (even if thin)
     star_type   TEXT,
-    created_at  TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at  TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 CREATE INDEX idx_solar_systems_galaxy ON solar_systems(galaxy_id);
 
 CREATE TABLE planets (
-    id                INTEGER     PRIMARY KEY AUTOINCREMENT,
-    solar_system_id   INTEGER     NOT NULL REFERENCES solar_systems(id),
-    seed              INTEGER     NOT NULL,
-    name              TEXT        NOT NULL,
-    orbital_slot      INTEGER     NOT NULL,
-    tile_count        INTEGER     NOT NULL CHECK (tile_count BETWEEN 100 AND 10000),
-    planet_type       TEXT,
-    created_at        TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at        TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+    id               INTEGER  PRIMARY KEY AUTOINCREMENT,
+    solar_system_id  INTEGER  NOT NULL REFERENCES solar_systems(id),
+    seed             INTEGER  NOT NULL,
+    name             TEXT     NOT NULL,
+    orbital_slot     INTEGER  NOT NULL,  -- keep: stable orbit index for procedural gen
+    x                REAL     NOT NULL,  -- position in the solar system plane
+    y                REAL     NOT NULL,
+    tile_count       INTEGER  NOT NULL CHECK (tile_count BETWEEN 100 AND 10000),
+    planet_type      TEXT,
+    created_at       TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at       TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 CREATE INDEX idx_planets_system ON planets(solar_system_id);
 
 CREATE TABLE planet_tiles (
-    id                INTEGER     PRIMARY KEY AUTOINCREMENT,
-    planet_id         INTEGER     NOT NULL REFERENCES planets(id),
-    tile_index        INTEGER     NOT NULL,
-    terrain_type      TEXT        NOT NULL
-                          CHECK (terrain_type IN ('plains','forest','mountain','water','lava','tundra','desert')),
-    is_pentagon       INTEGER     NOT NULL DEFAULT 0 CHECK (is_pentagon IN (0,1)),
-    owner_empire_id   INTEGER     REFERENCES empires(id),   -- nullable; FK to empires (defined below)
-    created_at        TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at        TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    UNIQUE (planet_id, tile_index)
+    id               INTEGER  PRIMARY KEY AUTOINCREMENT,
+    planet_id        INTEGER  NOT NULL REFERENCES planets(id),
+    tile_index       INTEGER  NOT NULL,  -- global flat index (optional, handy for arrays)
+    face             INTEGER  NOT NULL CHECK (face BETWEEN 0 AND 19),  -- icosahedron face 0–19
+    u                INTEGER  NOT NULL CHECK (u >= 0),                 -- Goldberg u offset
+    v                INTEGER  NOT NULL CHECK (v >= 0),                 -- Goldberg v offset
+    terrain_type     TEXT     NOT NULL
+                         CHECK (terrain_type IN ('plains','forest','mountain','water','lava','tundra','desert')),
+    is_pentagon      INTEGER  NOT NULL DEFAULT 0 CHECK (is_pentagon IN (0,1)),
+    owner_empire_id  INTEGER  REFERENCES empires(id),
+    created_at       TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at       TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    UNIQUE (planet_id, tile_index),
+    UNIQUE (planet_id, face, u, v)   -- Goldberg address must also be unique per planet
 );
 
 CREATE INDEX idx_planet_tiles_planet ON planet_tiles(planet_id);
 CREATE INDEX idx_planet_tiles_owner  ON planet_tiles(owner_empire_id);
 
-CREATE TABLE tile_adjacency (
-    tile_id       INTEGER     NOT NULL REFERENCES planet_tiles(id),
-    neighbor_id   INTEGER     NOT NULL REFERENCES planet_tiles(id),
-    PRIMARY KEY (tile_id, neighbor_id),
-    CHECK (tile_id <> neighbor_id)
-);
-
-CREATE INDEX idx_tile_adj_neighbor ON tile_adjacency(neighbor_id);
 
 CREATE TABLE asteroids (
     id                INTEGER     PRIMARY KEY AUTOINCREMENT,

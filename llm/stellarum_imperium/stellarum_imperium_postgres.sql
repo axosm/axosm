@@ -26,6 +26,9 @@ CREATE TABLE galaxies (
     seed        BIGINT          NOT NULL,
     name        VARCHAR(128)    NOT NULL,
     radius      FLOAT           NOT NULL,
+    x           FLOAT           NOT NULL,   -- universe coordinates
+    y           FLOAT           NOT NULL,
+    z           FLOAT           NOT NULL,
     created_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
 );
@@ -37,6 +40,7 @@ CREATE TABLE solar_systems (
     name        VARCHAR(128)    NOT NULL,
     x           FLOAT           NOT NULL,
     y           FLOAT           NOT NULL,
+    z           FLOAT           NOT NULL,
     star_type   VARCHAR(32),                    -- G, K, M, etc.
     created_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ     NOT NULL DEFAULT NOW()
@@ -50,7 +54,9 @@ CREATE TABLE planets (
     solar_system_id   BIGINT          NOT NULL REFERENCES solar_systems(id),
     seed              BIGINT          NOT NULL,
     name              VARCHAR(128)    NOT NULL,
-    orbital_slot      INT             NOT NULL,
+    orbital_slot      INT             NOT NULL,  -- keep: stable orbit index for procedural gen
+    x                 FLOAT           NOT NULL,  -- position in the solar system plane
+    y                 FLOAT           NOT NULL,
     tile_count        INT             NOT NULL CHECK (tile_count BETWEEN 100 AND 10000),
     planet_type       VARCHAR(32),                -- terrestrial, gas, lava, ice
     created_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
@@ -63,13 +69,18 @@ CREATE TABLE planet_tiles (
     id                BIGSERIAL       PRIMARY KEY,
     planet_id         BIGINT          NOT NULL REFERENCES planets(id),
     tile_index        INT             NOT NULL,
+    face             INTEGER  NOT NULL CHECK (face BETWEEN 0 AND 19),  -- icosahedron face 0–19
+    u                INTEGER  NOT NULL CHECK (u >= 0),                 -- Goldberg u offset
+    v                INTEGER  NOT NULL CHECK (v >= 0),                 -- Goldberg v offset
     terrain_type      VARCHAR(32)     NOT NULL
                           CHECK (terrain_type IN ('plains','forest','mountain','water','lava','tundra','desert')),
     is_pentagon       BOOLEAN         NOT NULL DEFAULT FALSE,
     owner_empire_id   BIGINT,                     -- FK set after empires table; see ALTER below
     created_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
-    UNIQUE (planet_id, tile_index)
+    UNIQUE (planet_id, tile_index),
+    UNIQUE (planet_id, face, u, v)   -- Goldberg address must also be unique per planet
+
 );
 
 CREATE INDEX idx_planet_tiles_planet   ON planet_tiles(planet_id);
