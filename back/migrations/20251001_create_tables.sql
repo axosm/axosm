@@ -65,6 +65,75 @@ CREATE INDEX idx_planets_system ON planets(star_system_id);
 
 
 
+aaaaaa TODO review everything below
+see https://claude.ai/share/f3a79932-cf06-4638-acae-f0213bbf423a
+
+
+-- A squad: pure headcount, no construction, no modules
+-- unit_type limited to ground-only types
+CREATE TABLE squad (
+  id            INTEGER PRIMARY KEY,
+  player_id     INTEGER NOT NULL REFERENCES player(id),
+  unit_type     TEXT NOT NULL CHECK(unit_type IN ('marine', 'tank', 'artillery')),
+  count         INTEGER NOT NULL DEFAULT 100,  -- this IS the hp
+  planet_id     INTEGER REFERENCES planet(id),
+  tile_x        INTEGER,
+  tile_y        INTEGER,
+  carried_by    INTEGER REFERENCES vessel(id)  -- can be loaded into a vessel
+);
+
+
+
+
+
+
+
+
+CREATE TABLE units (
+  id INTEGER PRIMARY KEY,
+  player_id INTEGER NOT NULL,
+  unit_type TEXT NOT NULL,
+  location_type TEXT NOT NULL, -- 'PLANET_SURFACE', 'ORBIT', 'SPACE'
+  FOREIGN KEY(player_id) REFERENCES players(id)
+);
+
+
+
+
+
+
+-- One table for everything: troops, ships, hybrids like the Zoc
+-- location_mode: 'planet_surface' | 'in_orbit' | 'in_space' | 'embarked'
+CREATE TABLE unit (
+  id               INTEGER PRIMARY KEY,
+  player_id        INTEGER NOT NULL REFERENCES player(id),
+  template_id      INTEGER NOT NULL REFERENCES entity_template(id),
+  name             TEXT,
+
+  -- Current location mode
+  location_mode    TEXT NOT NULL DEFAULT 'planet_surface',
+
+  -- Planet surface coords (location_mode = 'planet_surface')
+  planet_id        INTEGER REFERENCES planet(id),
+  tile_x           INTEGER,
+  tile_y           INTEGER,
+
+  -- Orbit (location_mode = 'in_orbit')
+  orbit_planet_id  INTEGER REFERENCES planet(id),
+
+  -- Deep space coords (location_mode = 'in_space')
+  space_x          REAL,
+  space_y          REAL,
+  space_z          REAL DEFAULT 0,
+
+  -- Embarked inside a carrier (location_mode = 'embarked')
+  carried_by       INTEGER REFERENCES unit(id),  -- self-referential!
+
+  hp               INTEGER NOT NULL DEFAULT 100
+);
+
+
+
 
 
 
