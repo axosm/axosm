@@ -3,36 +3,70 @@
 -- 20251001_create_tables.sql
 
 
+PRAGMA journal_mode = WAL;
+PRAGMA foreign_keys = ON;
+
+-- ─────────────────────────────────────────────────────────────
+-- 1. USERS & AUTHENTICATION
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS players (
+    id             INTEGER  PRIMARY KEY AUTOINCREMENT,
+    username       TEXT     NOT NULL,
+    email          TEXT     NOT NULL UNIQUE,
+    password_hash  TEXT     NOT NULL,
+    created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    last_login_at  TEXT
+);
+
+-- ─────────────────────────────────────────────────────────────
+-- 2. UNIVERSE & SPACE
+-- ─────────────────────────────────────────────────────────────
+
 CREATE TABLE galaxies (
-  id INTEGER PRIMARY KEY,
-  seed INTEGER NOT NULL
+    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+    seed        INTEGER  NOT NULL,
+    x           REAL     NOT NULL,
+    y           REAL     NOT NULL,
+    z           REAL     NOT NULL,
+    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    UNIQUE(x, y, z)
 );
 
 CREATE TABLE star_systems (
-  id INTEGER PRIMARY KEY,
-  galaxy_id INTEGER NOT NULL,
-  gx INTEGER NOT NULL,
-  gy INTEGER NOT NULL,
-  gz INTEGER NOT NULL,
-  seed INTEGER NOT NULL,
-  UNIQUE(galaxy_id, gx, gy, gz),
-  FOREIGN KEY(galaxy_id) REFERENCES galaxies(id)
+    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+    galaxy_id   INTEGER  NOT NULL REFERENCES galaxies(id),
+    seed        INTEGER  NOT NULL,
+    x           INTEGER  NOT NULL,
+    y           INTEGER  NOT NULL,
+    z           INTEGER  NOT NULL,
+    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    UNIQUE(galaxy_id, x, y, z)
 );
+
+CREATE INDEX idx_star_systems_galaxy ON star_systems(galaxy_id);
 
 CREATE TABLE planets (
-  id INTEGER PRIMARY KEY,
-  star_system_id INTEGER NOT NULL,
-  orbit_index INTEGER NOT NULL,
-  radius INTEGER NOT NULL,
-  subdivision INTEGER NOT NULL, -- Goldberg resolution (N)
-  seed INTEGER NOT NULL,
-  FOREIGN KEY(star_system_id) REFERENCES star_systems(id)
+    id              INTEGER  PRIMARY KEY AUTOINCREMENT,
+    star_system_id  INTEGER  NOT NULL REFERENCES star_systems(id),
+    seed            INTEGER  NOT NULL,
+    x               REAL     NOT NULL,
+    y               REAL     NOT NULL,
+    subdivision     INTEGER  NOT NULL, -- Goldberg resolution (N)
+    created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE TABLE IF NOT EXISTS players (
-  id INTEGER PRIMARY KEY,
-  name TEXT NOT NULL
-);
+CREATE INDEX idx_planets_system ON planets(star_system_id);
+
+
+
+
+
+
 
 -- old schema
 -- CREATE TABLE IF NOT EXISTS units (
@@ -188,3 +222,26 @@ INSERT INTO units (id, player_id, unit_type, location_type) VALUES
 INSERT INTO unit_planet_locations (unit_id, planet_id, face, u, v) VALUES
   (1, 1, 0, 10, 5),
   (2, 1, 2, 3, 7);
+
+
+
+-- ─────────────────────────────────────────────────────────────
+-- 13. updated_at TRIGGERS (SQLite does not have stored procs)
+-- ─────────────────────────────────────────────────────────────
+
+CREATE TRIGGER trg_users_updated_at
+    AFTER UPDATE ON users FOR EACH ROW
+    BEGIN UPDATE users SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
+
+CREATE TRIGGER trg_galaxies_updated_at
+    AFTER UPDATE ON galaxies FOR EACH ROW
+    BEGIN UPDATE galaxies SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
+
+CREATE TRIGGER trg_star_systems_updated_at
+    AFTER UPDATE ON star_systems FOR EACH ROW
+    BEGIN UPDATE galastar_systemsxies SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
+
+CREATE TRIGGER trg_planets_updated_at
+    AFTER UPDATE ON planets FOR EACH ROW
+    BEGIN UPDATE planets SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
+

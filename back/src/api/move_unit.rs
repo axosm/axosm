@@ -13,3 +13,8 @@
 
 //     Ok(Json(MoveResponse { arrival }))
 // }
+
+
+
+// in your game loop, checking for arrived units is just:
+// sqlSELECT * FROM fleets WHERE arrives_at <= unixepoch();
