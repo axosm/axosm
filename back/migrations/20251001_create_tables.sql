@@ -11,13 +11,13 @@ PRAGMA foreign_keys = ON;
 -- ─────────────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS players (
-    id             INTEGER  PRIMARY KEY AUTOINCREMENT,
-    username       TEXT     NOT NULL,
-    email          TEXT     NOT NULL UNIQUE,
-    password_hash  TEXT     NOT NULL,
-    created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    last_login_at  TEXT
+  id             INTEGER  PRIMARY KEY AUTOINCREMENT,
+  username       TEXT     NOT NULL,
+  email          TEXT     NOT NULL UNIQUE,
+  password_hash  TEXT     NOT NULL,
+  created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  last_login_at  TEXT
 );
 
 -- ─────────────────────────────────────────────────────────────
@@ -25,39 +25,39 @@ CREATE TABLE IF NOT EXISTS players (
 -- ─────────────────────────────────────────────────────────────
 
 CREATE TABLE galaxies (
-    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
-    seed        INTEGER  NOT NULL,
-    x           REAL     NOT NULL,
-    y           REAL     NOT NULL,
-    z           REAL     NOT NULL,
-    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    UNIQUE(x, y, z)
+  id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+  seed        INTEGER  NOT NULL,
+  x           REAL     NOT NULL,
+  y           REAL     NOT NULL,
+  z           REAL     NOT NULL,
+  created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(x, y, z)
 );
 
 CREATE TABLE star_systems (
-    id          INTEGER  PRIMARY KEY AUTOINCREMENT,
-    galaxy_id   INTEGER  NOT NULL REFERENCES galaxies(id),
-    seed        INTEGER  NOT NULL,
-    x           INTEGER  NOT NULL,
-    y           INTEGER  NOT NULL,
-    z           INTEGER  NOT NULL,
-    created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    UNIQUE(galaxy_id, x, y, z)
+  id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+  galaxy_id   INTEGER  NOT NULL REFERENCES galaxies(id),
+  seed        INTEGER  NOT NULL,
+  x           INTEGER  NOT NULL,
+  y           INTEGER  NOT NULL,
+  z           INTEGER  NOT NULL,
+  created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  UNIQUE(galaxy_id, x, y, z)
 );
 
 CREATE INDEX idx_star_systems_galaxy ON star_systems(galaxy_id);
 
 CREATE TABLE planets (
-    id              INTEGER  PRIMARY KEY AUTOINCREMENT,
-    star_system_id  INTEGER  NOT NULL REFERENCES star_systems(id),
-    seed            INTEGER  NOT NULL,
-    x               REAL     NOT NULL,
-    y               REAL     NOT NULL,
-    subdivision     INTEGER  NOT NULL, -- Goldberg resolution (N)
-    created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-    updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  id              INTEGER  PRIMARY KEY AUTOINCREMENT,
+  star_system_id  INTEGER  NOT NULL REFERENCES star_systems(id),
+  seed            INTEGER  NOT NULL,
+  x               REAL     NOT NULL,
+  y               REAL     NOT NULL,
+  subdivision     INTEGER  NOT NULL, -- Goldberg resolution (N)
+  created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
 CREATE INDEX idx_planets_system ON planets(star_system_id);
@@ -67,6 +67,51 @@ CREATE INDEX idx_planets_system ON planets(star_system_id);
 
 aaaaaa TODO review everything below
 see https://claude.ai/share/f3a79932-cf06-4638-acae-f0213bbf423a
+
+
+CREATE TABLE units (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  unit_type TEXT NOT NULL,
+  is_squad BOOLEAN NOT NULL,
+  count INTEGER NOT NULL,
+  hp INTEGER NOT NULL,
+  player_id INTEGER NOT NULL,
+  position_x REAL NOT NULL,
+  position_y REAL NOT NULL,
+  customization JSON,
+  FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+CREATE INDEX idx_units_player ON units(player_id);
+CREATE INDEX idx_units_position ON units(position_x, position_y);
+
+CREATE TABLE formations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,  -- e.g., "Formation Alpha"
+  player_id INTEGER NOT NULL,
+  transport_id INTEGER REFERENCES units(id),  -- Carrier ship or transport vehicle
+  FOREIGN KEY (player_id) REFERENCES players(id)
+);
+
+CREATE TABLE formation_units (
+  formation_id INTEGER NOT NULL,
+  unit_id INTEGER NOT NULL,
+  PRIMARY KEY (formation_id, unit_id),
+  FOREIGN KEY (formation_id) REFERENCES formations(id),
+  FOREIGN KEY (unit_id) REFERENCES units(id)
+);
+
+CREATE TABLE unit_transport (
+  transport_id INTEGER NOT NULL,  -- ID of the carrier (individual unit)
+  unit_id INTEGER NOT NULL,        -- ID of the transported unit/squad
+  PRIMARY KEY (transport_id, unit_id),
+  FOREIGN KEY (transport_id) REFERENCES units(id),
+  FOREIGN KEY (unit_id) REFERENCES units(id)
+);
+
+
+
+
 
 
 -- A squad: pure headcount, no construction, no modules
