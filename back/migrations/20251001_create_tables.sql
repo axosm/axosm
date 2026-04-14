@@ -130,6 +130,8 @@ CREATE TABLE move_orders (
   FOREIGN KEY(unit_id) REFERENCES units(id)
 );
 
+aaaa see Squad based or single unit control, which one do you prefer ? 
+https://www.reddit.com/r/RealTimeStrategy/comments/182q4o3/squad_based_or_single_unit_control_which_one_do/
 
 
 -- CREATE TABLE formations (
