@@ -92,6 +92,8 @@ CREATE TABLE units (
   orbit_planet_id INTEGER REFERENCES planets(id),
 
   -- Deep space (when location_mode = 'in_space')
+  star_system_id     INTEGER REFERENCES star_systems(id),
+  -- star_system_posZ GEOMETRY(PointZ, 0), -- need Postgres extension PostGIS
   star_system_x         REAL,
   star_system_y         REAL,
   star_system_z         REAL DEFAULT 0,
@@ -101,9 +103,19 @@ CREATE TABLE units (
 );
 
 CREATE INDEX idx_units_player ON units(player_id);
-CREATE INDEX idx_units_planet ON units(planet_id, planet_face, planet_u, planet_v);
-CREATE INDEX idx_units_orbit ON units(orbit_planet_id);
+CREATE INDEX idx_units_planet ON units(planet_id, planet_face, planet_u, planet_v)  WHERE location_mode = 'planet_surface';
+CREATE INDEX idx_units_orbit ON units(orbit_planet_id)  WHERE location_mode = 'in_orbit';
 CREATE INDEX idx_units_star_system ON units(star_system_x, star_system_y, star_system_z);
+
+
+-- -- This stores all three coordinates in one column
+-- UPDATE units SET space_pos = ST_MakePoint(12.5, 34.2, 7.8)
+-- WHERE id = ?;
+
+-- -- "find all units within radius 100 of position (10, 30, 5)"
+-- SELECT * FROM units
+-- WHERE system_id = ? AND ST_DWithin(space_pos, ST_MakePoint(10, 30, 5), 100);
+
 
 CREATE TABLE move_orders (
   id INTEGER PRIMARY KEY,
@@ -133,6 +145,8 @@ CREATE TABLE move_orders (
 aaaa see Squad based or single unit control, which one do you prefer ? 
 https://www.reddit.com/r/RealTimeStrategy/comments/182q4o3/squad_based_or_single_unit_control_which_one_do/
 
+PostGIS
+https://claude.ai/share/94821517-87e4-4601-9537-4ded5073e2ca
 
 -- CREATE TABLE formations (
 --   id INTEGER PRIMARY KEY AUTOINCREMENT,
