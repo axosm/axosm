@@ -124,11 +124,11 @@ CREATE TABLE move_orders (
                       'tile_walk', 'launch_to_orbit', 'orbit_to_space',
                       'space_travel', 'enter_orbit', 'land'
                     )),
-  from_planet_id    INTEGER REFERENCES planet(id),
+  from_planet_id    INTEGER REFERENCES planets(id),
   from_planet_face INTEGER NOT NULL,
   from_planet_u INTEGER NOT NULL,
   from_planet_v INTEGER NOT NULL,
-  to_planet_id    INTEGER REFERENCES planet(id),
+  to_planet_id    INTEGER REFERENCES planets(id),
   to_planet_face INTEGER NOT NULL,
   to_planet_u INTEGER NOT NULL,
   to_planet_v INTEGER NOT NULL,
@@ -147,6 +147,13 @@ https://www.reddit.com/r/RealTimeStrategy/comments/182q4o3/squad_based_or_single
 
 PostGIS
 https://claude.ai/share/94821517-87e4-4601-9537-4ded5073e2ca
+learn more about :
+- Slash of clan defense/battle system ("how buildings have implicit HP and act as defenders")
+- Settlers of Catan rules
+
+schema / city battles / influence
+https://claude.ai/share/b25daaf0-c880-4e4d-986a-3717515382ef
+
 
 -- CREATE TABLE formations (
 --   id INTEGER PRIMARY KEY AUTOINCREMENT,

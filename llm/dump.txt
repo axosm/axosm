@@ -1,5 +1,10 @@
 
 
+
+2026-04-24
+schema / city battles / influence
+https://claude.ai/share/b25daaf0-c880-4e4d-986a-3717515382ef
+
 2026-01-29
 How to create a colormap like civilization hexagonal terrain ? 
 https://www.reddit.com/r/proceduralgeneration/comments/1qqdyti/how_to_create_a_colormap_like_civilization/
