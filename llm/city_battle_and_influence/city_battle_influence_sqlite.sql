@@ -19,7 +19,7 @@ PRAGMA journal_mode = WAL;
 -- 1. PLAYERS & AUTHENTICATION
 -- ─────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS players (
+CREATE TABLE players (
   id             INTEGER  PRIMARY KEY AUTOINCREMENT,
   username       TEXT     NOT NULL,
   email          TEXT     NOT NULL UNIQUE,
@@ -29,14 +29,14 @@ CREATE TABLE IF NOT EXISTS players (
   last_login_at  TEXT
 );
 
-CREATE TABLE IF NOT EXISTS empires (
+CREATE TABLE empires (
   id          INTEGER  PRIMARY KEY AUTOINCREMENT,
   name        TEXT     NOT NULL UNIQUE,
   created_by  INTEGER  NOT NULL REFERENCES players(id),
   created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE TABLE IF NOT EXISTS empire_members (
+CREATE TABLE empire_members (
   empire_id   INTEGER  NOT NULL REFERENCES empires(id),
   player_id   INTEGER  NOT NULL REFERENCES players(id),
   role        TEXT     NOT NULL DEFAULT 'member'
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS empire_members (
 -- 2. UNIVERSE & SPACE
 -- ─────────────────────────────────────────────────────────────
 
-CREATE TABLE IF NOT EXISTS galaxies (
+CREATE TABLE galaxies (
   id          INTEGER  PRIMARY KEY AUTOINCREMENT,
   seed        INTEGER  NOT NULL,
   x           REAL     NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS galaxies (
   UNIQUE(x, y, z)
 );
 
-CREATE TABLE IF NOT EXISTS star_systems (
+CREATE TABLE star_systems (
   id          INTEGER  PRIMARY KEY AUTOINCREMENT,
   galaxy_id   INTEGER  NOT NULL REFERENCES galaxies(id),
   seed        INTEGER  NOT NULL,
@@ -72,9 +72,9 @@ CREATE TABLE IF NOT EXISTS star_systems (
   UNIQUE(galaxy_id, x, y, z)
 );
 
-CREATE INDEX IF NOT EXISTS idx_star_systems_galaxy ON star_systems(galaxy_id);
+CREATE INDEX idx_star_systems_galaxy ON star_systems(galaxy_id);
 
-CREATE TABLE IF NOT EXISTS planets (
+CREATE TABLE planets (
   id              INTEGER  PRIMARY KEY AUTOINCREMENT,
   star_system_id  INTEGER  NOT NULL REFERENCES star_systems(id),
   seed            INTEGER  NOT NULL,
@@ -85,10 +85,10 @@ CREATE TABLE IF NOT EXISTS planets (
   updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_planets_system ON planets(star_system_id);
+CREATE INDEX idx_planets_system ON planets(star_system_id);
 
 -- Dynamic space objects (asteroids, pirate bases, events — not seeded)
-CREATE TABLE IF NOT EXISTS space_objects (
+CREATE TABLE space_objects (
   id             INTEGER  PRIMARY KEY AUTOINCREMENT,
   star_system_id INTEGER  NOT NULL REFERENCES star_systems(id),
   object_type    TEXT     NOT NULL
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS space_objects (
   despawned_at   TEXT                           -- NULL = still active
 );
 
-CREATE INDEX IF NOT EXISTS idx_space_objects_system ON space_objects(star_system_id);
+CREATE INDEX idx_space_objects_system ON space_objects(star_system_id);
 
 -- ─────────────────────────────────────────────────────────────
 -- 3. TILES
@@ -109,7 +109,7 @@ CREATE INDEX IF NOT EXISTS idx_space_objects_system ON space_objects(star_system
 
 -- One row per tile on a planet surface.
 -- Tiles are generated lazily as players explore — not all at startup.
-CREATE TABLE IF NOT EXISTS planet_tiles (
+CREATE TABLE planet_tiles (
   id                       INTEGER  PRIMARY KEY AUTOINCREMENT,
   planet_id                INTEGER  NOT NULL REFERENCES planets(id),
   face                     INTEGER  NOT NULL, -- Goldberg face index
@@ -148,10 +148,10 @@ CREATE TABLE IF NOT EXISTS planet_tiles (
   UNIQUE(planet_id, face, u, v)
 );
 
-CREATE INDEX IF NOT EXISTS idx_tiles_planet       ON planet_tiles(planet_id);
-CREATE INDEX IF NOT EXISTS idx_tiles_owner        ON planet_tiles(owner_player_id) WHERE owner_player_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_tiles_recalc       ON planet_tiles(influence_recalc_needed) WHERE influence_recalc_needed = 1;
-CREATE INDEX IF NOT EXISTS idx_tiles_rare_deposit ON planet_tiles(rare_deposit) WHERE rare_deposit IS NOT NULL;
+CREATE INDEX idx_tiles_planet       ON planet_tiles(planet_id);
+CREATE INDEX idx_tiles_owner        ON planet_tiles(owner_player_id) WHERE owner_player_id IS NOT NULL;
+CREATE INDEX idx_tiles_recalc       ON planet_tiles(influence_recalc_needed) WHERE influence_recalc_needed = 1;
+CREATE INDEX idx_tiles_rare_deposit ON planet_tiles(rare_deposit) WHERE rare_deposit IS NOT NULL;
 
 -- ─────────────────────────────────────────────────────────────
 -- 4. INFLUENCE
@@ -162,7 +162,7 @@ CREATE INDEX IF NOT EXISTS idx_tiles_rare_deposit ON planet_tiles(rare_deposit) 
 -- capped at influence_radius.
 -- Owner of a tile = player with highest score.
 -- Recalculated by background job when influence_recalc_needed = 1.
-CREATE TABLE IF NOT EXISTS tile_influence (
+CREATE TABLE tile_influence (
   tile_id    INTEGER  NOT NULL REFERENCES planet_tiles(id) ON DELETE CASCADE,
   player_id  INTEGER  NOT NULL REFERENCES players(id)      ON DELETE CASCADE,
   score      REAL     NOT NULL DEFAULT 0,
@@ -170,15 +170,15 @@ CREATE TABLE IF NOT EXISTS tile_influence (
   PRIMARY KEY (tile_id, player_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_influence_tile   ON tile_influence(tile_id);
-CREATE INDEX IF NOT EXISTS idx_influence_player ON tile_influence(player_id);
+CREATE INDEX idx_influence_tile   ON tile_influence(tile_id);
+CREATE INDEX idx_influence_player ON tile_influence(player_id);
 
 -- ─────────────────────────────────────────────────────────────
 -- 5. BUILDINGS
 -- ─────────────────────────────────────────────────────────────
 
 -- Static config per building type. Stored in DB so game logic can query it.
-CREATE TABLE IF NOT EXISTS building_types (
+CREATE TABLE building_types (
   unit_type                TEXT     PRIMARY KEY,
   era                      TEXT     NOT NULL
                            CHECK(era IN ('stone','industrial','modern','space')),
@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS building_types (
 
 -- Per-instance building on a tile.
 -- One building per tile enforced by UNIQUE(tile_id).
-CREATE TABLE IF NOT EXISTS buildings (
+CREATE TABLE buildings (
   id                   INTEGER  PRIMARY KEY AUTOINCREMENT,
   player_id            INTEGER  NOT NULL REFERENCES players(id),
   building_type        TEXT     NOT NULL REFERENCES building_types(unit_type),
@@ -244,19 +244,19 @@ CREATE TABLE IF NOT EXISTS buildings (
   UNIQUE(tile_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_buildings_player      ON buildings(player_id);
-CREATE INDEX IF NOT EXISTS idx_buildings_tile        ON buildings(tile_id);
-CREATE INDEX IF NOT EXISTS idx_buildings_type        ON buildings(building_type);
-CREATE INDEX IF NOT EXISTS idx_buildings_under_attack ON buildings(under_attack) WHERE under_attack = 1;
-CREATE INDEX IF NOT EXISTS idx_buildings_destroyed   ON buildings(destroyed_at)  WHERE destroyed_at IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_buildings_flying      ON buildings(flight_state)  WHERE flight_state != 'grounded';
+CREATE INDEX idx_buildings_player      ON buildings(player_id);
+CREATE INDEX idx_buildings_tile        ON buildings(tile_id);
+CREATE INDEX idx_buildings_type        ON buildings(building_type);
+CREATE INDEX idx_buildings_under_attack ON buildings(under_attack) WHERE under_attack = 1;
+CREATE INDEX idx_buildings_destroyed   ON buildings(destroyed_at)  WHERE destroyed_at IS NOT NULL;
+CREATE INDEX idx_buildings_flying      ON buildings(flight_state)  WHERE flight_state != 'grounded';
 
 -- ─────────────────────────────────────────────────────────────
 -- 6. UNITS & MOVEMENT
 -- ─────────────────────────────────────────────────────────────
 
 -- Static config per unit type
-CREATE TABLE IF NOT EXISTS unit_types (
+CREATE TABLE unit_types (
   unit_type              TEXT  PRIMARY KEY,
   era                    TEXT  NOT NULL
                          CHECK(era IN ('stone','industrial','modern','space')),
@@ -273,7 +273,7 @@ CREATE TABLE IF NOT EXISTS unit_types (
 );
 
 -- Per-instance unit / formation
-CREATE TABLE IF NOT EXISTS units (
+CREATE TABLE units (
   id             INTEGER  PRIMARY KEY AUTOINCREMENT,
   unit_type      TEXT     NOT NULL REFERENCES unit_types(unit_type),
   is_squad       INTEGER  NOT NULL DEFAULT 0,  -- 1 = multiple individuals grouped
@@ -313,17 +313,17 @@ CREATE TABLE IF NOT EXISTS units (
   FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_units_player      ON units(player_id);
-CREATE INDEX IF NOT EXISTS idx_units_in_battle   ON units(in_battle) WHERE in_battle = 1;
-CREATE INDEX IF NOT EXISTS idx_units_planet      ON units(planet_id, planet_face, planet_u, planet_v)
+CREATE INDEX idx_units_player      ON units(player_id);
+CREATE INDEX idx_units_in_battle   ON units(in_battle) WHERE in_battle = 1;
+CREATE INDEX idx_units_planet      ON units(planet_id, planet_face, planet_u, planet_v)
                                                   WHERE location_mode = 'planet_surface';
-CREATE INDEX IF NOT EXISTS idx_units_orbit       ON units(orbit_planet_id)
+CREATE INDEX idx_units_orbit       ON units(orbit_planet_id)
                                                   WHERE location_mode = 'in_orbit';
-CREATE INDEX IF NOT EXISTS idx_units_space       ON units(star_system_id, star_system_x, star_system_y)
+CREATE INDEX idx_units_space       ON units(star_system_id, star_system_x, star_system_y)
                                                   WHERE location_mode = 'in_space';
 
 -- All movement orders: units and flying buildings share this table.
-CREATE TABLE IF NOT EXISTS move_orders (
+CREATE TABLE move_orders (
   id              INTEGER  PRIMARY KEY AUTOINCREMENT,
 
   -- Exactly one of these must be set
@@ -372,12 +372,12 @@ CREATE TABLE IF NOT EXISTS move_orders (
   created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_move_orders_unit     ON move_orders(unit_id)     WHERE unit_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_move_orders_building ON move_orders(building_id) WHERE building_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_move_orders_arrival  ON move_orders(arrival_time);
+CREATE INDEX idx_move_orders_unit     ON move_orders(unit_id)     WHERE unit_id IS NOT NULL;
+CREATE INDEX idx_move_orders_building ON move_orders(building_id) WHERE building_id IS NOT NULL;
+CREATE INDEX idx_move_orders_arrival  ON move_orders(arrival_time);
 
 -- Retreat orders: created by player during combat, consumed next tick.
-CREATE TABLE IF NOT EXISTS retreat_orders (
+CREATE TABLE retreat_orders (
   id              INTEGER  PRIMARY KEY AUTOINCREMENT,
   unit_id         INTEGER  NOT NULL REFERENCES units(id) ON DELETE CASCADE,
   player_id       INTEGER  NOT NULL REFERENCES players(id),
@@ -387,8 +387,8 @@ CREATE TABLE IF NOT EXISTS retreat_orders (
   created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_retreat_unit   ON retreat_orders(unit_id);
-CREATE INDEX IF NOT EXISTS idx_retreat_player ON retreat_orders(player_id);
+CREATE INDEX idx_retreat_unit   ON retreat_orders(unit_id);
+CREATE INDEX idx_retreat_player ON retreat_orders(player_id);
 
 -- ─────────────────────────────────────────────────────────────
 -- 7. COMBAT
@@ -396,7 +396,7 @@ CREATE INDEX IF NOT EXISTS idx_retreat_player ON retreat_orders(player_id);
 
 -- Active battles — one row per contested tile (or space coordinate).
 -- Created when opposing units meet. Deleted when resolved.
-CREATE TABLE IF NOT EXISTS battles (
+CREATE TABLE battles (
   id               INTEGER  PRIMARY KEY AUTOINCREMENT,
 
   -- Location: exactly one of planet tile or space coordinate
@@ -420,12 +420,12 @@ CREATE TABLE IF NOT EXISTS battles (
   last_tick_at     TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_battles_tile      ON battles(tile_id)        WHERE tile_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_battles_attacker  ON battles(attacker_id);
-CREATE INDEX IF NOT EXISTS idx_battles_defender  ON battles(defender_id);
+CREATE INDEX idx_battles_tile      ON battles(tile_id)        WHERE tile_id IS NOT NULL;
+CREATE INDEX idx_battles_attacker  ON battles(attacker_id);
+CREATE INDEX idx_battles_defender  ON battles(defender_id);
 
 -- Permanent record of every resolved battle.
-CREATE TABLE IF NOT EXISTS battle_reports (
+CREATE TABLE battle_reports (
   id               INTEGER  PRIMARY KEY AUTOINCREMENT,
   battle_id        INTEGER  NOT NULL, -- original battles.id (kept after deletion)
 
@@ -465,9 +465,9 @@ CREATE TABLE IF NOT EXISTS battle_reports (
   defender_read    INTEGER  NOT NULL DEFAULT 0
 );
 
-CREATE INDEX IF NOT EXISTS idx_battle_reports_attacker ON battle_reports(attacker_id, attacker_read);
-CREATE INDEX IF NOT EXISTS idx_battle_reports_defender ON battle_reports(defender_id, defender_read);
-CREATE INDEX IF NOT EXISTS idx_battle_reports_tile     ON battle_reports(tile_id) WHERE tile_id IS NOT NULL;
+CREATE INDEX idx_battle_reports_attacker ON battle_reports(attacker_id, attacker_read);
+CREATE INDEX idx_battle_reports_defender ON battle_reports(defender_id, defender_read);
+CREATE INDEX idx_battle_reports_tile     ON battle_reports(tile_id) WHERE tile_id IS NOT NULL;
 
 -- ─────────────────────────────────────────────────────────────
 -- 8. RESOURCES
@@ -476,7 +476,7 @@ CREATE INDEX IF NOT EXISTS idx_battle_reports_tile     ON battle_reports(tile_id
 -- Pooled resource inventory per player.
 -- All buildings on all planets feed into this single pool (OGame-style).
 -- Add planet_id FK here later if you want per-planet pools.
-CREATE TABLE IF NOT EXISTS player_resources (
+CREATE TABLE player_resources (
   player_id      INTEGER  NOT NULL REFERENCES players(id) ON DELETE CASCADE,
   resource_type  TEXT     NOT NULL
                  CHECK(resource_type IN (
@@ -497,10 +497,10 @@ CREATE TABLE IF NOT EXISTS player_resources (
   PRIMARY KEY (player_id, resource_type)
 );
 
-CREATE INDEX IF NOT EXISTS idx_player_resources_player ON player_resources(player_id);
+CREATE INDEX idx_player_resources_player ON player_resources(player_id);
 
 -- Resources carried by a unit formation (set during loot_and_retreat)
-CREATE TABLE IF NOT EXISTS unit_cargo (
+CREATE TABLE unit_cargo (
   unit_id        INTEGER  NOT NULL REFERENCES units(id) ON DELETE CASCADE,
   resource_type  TEXT     NOT NULL,
   amount         REAL     NOT NULL DEFAULT 0,
