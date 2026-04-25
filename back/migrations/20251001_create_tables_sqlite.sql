@@ -786,9 +786,9 @@ CREATE TABLE unit_cargo (
 -- 13. updated_at TRIGGERS (SQLite does not have stored procs)
 -- ─────────────────────────────────────────────────────────────
 
-CREATE TRIGGER trg_users_updated_at
-    AFTER UPDATE ON users FOR EACH ROW
-    BEGIN UPDATE users SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
+-- CREATE TRIGGER trg_users_updated_at
+--     AFTER UPDATE ON users FOR EACH ROW
+--     BEGIN UPDATE users SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
 
 CREATE TRIGGER trg_galaxies_updated_at
     AFTER UPDATE ON galaxies FOR EACH ROW
@@ -802,3 +802,4 @@ CREATE TRIGGER trg_planets_updated_at
     AFTER UPDATE ON planets FOR EACH ROW
     BEGIN UPDATE planets SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
 
+-- // TODO add missing triggers

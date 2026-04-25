@@ -23,6 +23,12 @@ pub fn init_tracing() -> Result<()> {
 
 pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
     let db = SqlitePool::connect("sqlite://./game.db?mode=rwc").await?;
+
+    // Set WAL mode immediately after connecting
+    sqlx::query("PRAGMA journal_mode = WAL;")
+        .execute(&db)
+        .await?;
+
     sqlx::migrate!("./migrations").run(&db).await?;
 
     let (tx, _) = broadcast::channel(128);
