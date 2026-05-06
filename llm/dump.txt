@@ -1,5 +1,8 @@
 
-
+2026-05-07
+project architecture
+auth / middleware
+https://claude.ai/share/31ffaae3-fc58-44d1-9165-352f2bd53d29
 
 2026-04-24
 schema / city battles / influence

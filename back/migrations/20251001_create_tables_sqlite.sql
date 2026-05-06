@@ -803,3 +803,5 @@ CREATE TRIGGER trg_planets_updated_at
     BEGIN UPDATE planets SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
 
 -- // TODO add missing triggers
+
+

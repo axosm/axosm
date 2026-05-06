@@ -1,53 +1,93 @@
-import * as THREE from "three";
+import { api, GameState } from "./api/api";
+import { GameRenderer } from "./renderer/GameRenderer";
+
+class Game {
+  private renderer!: GameRenderer;
+
+  private gameState: GameState | null = null;
+  
+  private pendingTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  private battleSSE: EventSource | null = null;
 
 
-aaaa https://claude.ai/share/34acb4d5-73a6-482c-b505-0049de5d6e26
+  constructor() {
+  
+  }
 
 
+  async boot() {
+    this.gameState = await api.getGameState();
 
-const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
+    console.log(this.gameState);
 
-// Scene
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000010);
+    const container = document.getElementById('game-canvas')!;
+    this.renderer = new GameRenderer(container);
+  }
 
-// Camera
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000,
-);
-camera.position.z = 5;
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-
-// A simple sphere (planet)
-const geometry = new THREE.SphereGeometry(1, 32, 32);
-const material = new THREE.MeshStandardMaterial({ color: 0x4488ff });
-const planet = new THREE.Mesh(geometry, material);
-scene.add(planet);
-
-// Lights
-scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-const sun = new THREE.PointLight(0xffffff, 2);
-sun.position.set(10, 10, 10);
-scene.add(sun);
-
-// Resize
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// Loop
-function animate() {
-  requestAnimationFrame(animate);
-  planet.rotation.y += 0.005;
-  renderer.render(scene, camera);
 }
-animate();
+
+// ── Bootstrap ──────────────────────────────────────────────────
+const game = new Game();
+game.boot();
+
+
+  // // Called when server confirms a move, returns arrival_time
+  // private scheduleMovepoll(unit: Unit, arrivalTime: string) {
+  //   const delay = new Date(arrivalTime).getTime() - Date.now();
+
+  //   const timer = setTimeout(async () => {
+  //     this.pendingTimers.delete(unit.id);
+  //     const fresh = await api.getGameState();
+  //     this.applyState(fresh);
+  //   }, delay);
+
+  //   this.pendingTimers.set(unit.id, timer);
+  // }
+
+  // // Same pattern for construction / research
+  // private scheduleCompletionPoll(jobId: string, completesAt: string) {
+  //   const delay = new Date(completesAt).getTime() - Date.now();
+
+  //   const timer = setTimeout(async () => {
+  //     this.pendingTimers.delete(jobId);
+  //     const fresh = await api.getGameState();
+  //     this.applyState(fresh);
+  //   }, delay);
+
+  //   this.pendingTimers.set(jobId, timer);
+  // }
+
+  // private connectBattleSSE() {
+  //   this.battleSSE = new EventSource('/api/battle-alerts');
+
+  //   this.battleSSE.addEventListener('combat_tick', (e) => {
+  //     const data = JSON.parse(e.data);
+  //     this.hud.showCombatAlert(data);
+  //     this.renderer.updateUnits(data.units_on_tile);
+  //   });
+
+  //   this.battleSSE.addEventListener('unit_destroyed', (e) => {
+  //     const data = JSON.parse(e.data);
+  //     this.renderer.removeUnit(data.unit_id);
+  //     this.hud.renderUnits(this.gameState!.units.filter(u => u.id !== data.unit_id));
+  //   });
+
+  //   this.battleSSE.onerror = () => {
+  //     // SSE auto-reconnects, but you can add backoff logic here
+  //   };
+  // }
+
+  //   private applyState(state: GameState) {
+  //   this.gameState = state;
+  //   this.renderer.loadTiles(state.visible_tiles, state.subdivision);
+  //   this.renderer.placeUnits(state.units, state.subdivision, state.planet_id);
+  //   this.renderer.drawMinimap(...);
+  //   this.hud.renderUnits(state.units);
+  //   // re-register pending timers that survived the refresh
+  //   // (in case the page was reloaded mid-movement)
+  //   for (const unit of state.units) {
+  //     if (unit.arrival_time && !this.pendingTimers.has(unit.id)) {
+  //       this.scheduleMovepoll(unit, unit.arrival_time);
+  //     }
+  //   }
+  // }

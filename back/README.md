@@ -34,3 +34,60 @@ TODO
 - do vue tuto
 - add vue to the project
 - add tauri to the project : https://v2.tauri.app/start/create-project/#manual-setup-tauri-cli
+
+
+## Project architecture
+
+src/
+├── main.rs
+├── config.rs                  # App config, env vars
+├── errors.rs                  # Global error type, impl IntoResponse
+├── state.rs                   # AppState, DB pool
+│
+├── auth/
+│   ├── mod.rs
+│   ├── middleware.rs          # AuthPlayer extractor
+│   ├── handlers.rs            # login, register, logout
+│   └── service.rs             # hash password, verify token
+│
+├── db/                        # Raw DB models (FromRow)
+│   ├── mod.rs
+│   ├── player.rs
+│   ├── planet.rs
+│   ├── unit.rs
+│   ├── alliance.rs
+│   ├── resources.rs
+│   └── session.rs
+│
+├── dto/                       # API shapes (Serialize/Deserialize)
+│   ├── mod.rs
+│   ├── player.rs              # PublicPlayerInfo, PlayerResponse
+│   ├── planet.rs              # PlanetResponse, PlanetSummary
+│   ├── alliance.rs            # AllianceResponse, CreateAllianceRequest
+│   ├── resources.rs           # ResourceState, ProductionRates
+│   └── game.rs                # GameState, InitResponse
+│
+├── handlers/                  # Axum route handlers (thin layer)
+│   ├── mod.rs
+│   ├── game.rs
+│   ├── planet.rs
+│   ├── fleet.rs
+│   ├── alliance.rs
+│   └── admin.rs
+│
+├── services/                  # Business logic
+│   ├── mod.rs
+│   ├── game.rs                # init_new_player, load_game_state
+│   ├── resources.rs           # compute_resources, tick production
+│   ├── battle.rs              # battle resolution
+│   ├── fleet.rs               # movement, arrival
+│   └── alliance.rs            # invite, kick, rank
+│
+├── game/                      # Pure game logic, no DB/HTTP
+│   ├── mod.rs
+│   ├── fog.rs                 # reveal_fog, visibility calc
+│   ├── combat.rs              # damage formulas
+│   ├── production.rs          # rate calculations
+│   └── map.rs                 # planet tile generation
+│
+└── routes.rs                  # Router assembly, all .route() calls
