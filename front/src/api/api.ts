@@ -96,9 +96,9 @@ export class ApiClient {
     return this.request('POST', '/auth/login', { email, password });
   }
 
-  async initGame(): Promise<InitResponse> {
-    return this.request('POST', '/game/init');
-  }
+  // async initGame(): Promise<InitResponse> {
+  //   return this.request('POST', '/game/init');
+  // }
 
   async getGameState(): Promise<GameState> {
     return this.request('GET', '/game/state');

@@ -58,7 +58,7 @@ pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
 pub fn router(state: Arc<AppState>) -> Router {
     
     Router::new()
-        .route("/api/state/{player_id}", get(api::state::get_state))
+        .route("/api/state", get(api::state::get_state))
         // .route("/api/state/:player_id", get(api::state::get_state))
         // .route("/api/move", post(api::move_unit::handler))
         // .route("/api/events", get(api::events::handler))

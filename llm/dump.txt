@@ -1,4 +1,8 @@
 
+2026-05-10
+server speed up time (on local or for admin only)
+https://claude.ai/share/6456a34b-be0d-4c05-a94e-e03ba39aa3ca
+
 2026-05-07
 project architecture
 auth / middleware
