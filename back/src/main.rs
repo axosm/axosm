@@ -40,7 +40,8 @@ use std::convert::Infallible;
 use tokio_stream::wrappers::ReceiverStream;
 
 mod app;
-mod api;
+mod handlers;
+// mod api;
 mod db;
 
 #[tokio::main]
@@ -48,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
     // logging
     app::init_tracing()?;
 
-    let state = app::init_state().await?;
+    let state: Arc<app::AppState> = app::init_state().await?;
     // app::spawn_worker(state.clone());
 
     let app = app::router(state);

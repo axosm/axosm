@@ -8,7 +8,7 @@ use anyhow::Result;
 use tokio::sync::broadcast;
 use tracing_subscriber::FmtSubscriber;
 
-use crate::api;
+use crate::handlers;
 
 pub struct AppState {
     pub db: SqlitePool,
@@ -58,7 +58,11 @@ pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
 pub fn router(state: Arc<AppState>) -> Router {
     
     Router::new()
-        .route("/api/state", get(api::state::get_state))
+        // Auth
+        .route("/auth/register", post(handlers::auth::register))
+        .route("/auth/login",    post(handlers::auth::login))
+        // Game
+        .route("/api/state", get(handlers::state::get_state))
         // .route("/api/state/:player_id", get(api::state::get_state))
         // .route("/api/move", post(api::move_unit::handler))
         // .route("/api/events", get(api::events::handler))

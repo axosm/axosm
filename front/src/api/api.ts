@@ -89,11 +89,11 @@ export class ApiClient {
   }
 
   async register(username: string, email: string, password: string): Promise<AuthResponse> {
-    return this.request('POST', '/auth/register', { username, email, password });
+    return this.request('POST', '/api/auth/register', { username, email, password });
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    return this.request('POST', '/auth/login', { email, password });
+    return this.request('POST', '/api/auth/login', { email, password });
   }
 
   // async initGame(): Promise<InitResponse> {
@@ -101,15 +101,15 @@ export class ApiClient {
   // }
 
   async getGameState(): Promise<GameState> {
-    return this.request('GET', '/game/state');
+    return this.request('GET', '/api/state');
   }
 
   async getVisibleTiles(planet_id: number): Promise<PlanetTile[]> {
-    return this.request('GET', `/game/visible-tiles?planet_id=${planet_id}`);
+    return this.request('GET', `/api/visible-tiles?planet_id=${planet_id}`);
   }
 
   async moveUnit(unit_id: number, to_face: number, to_u: number, to_v: number) {
-    return this.request('POST', `/units/${unit_id}/move`, { to_face, to_u, to_v });
+    return this.request('POST', `/api/units/${unit_id}/move`, { to_face, to_u, to_v });
   }
 }
 
