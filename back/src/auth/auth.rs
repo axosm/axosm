@@ -55,11 +55,13 @@ pub struct LoginRequest {
     pub password: String,
 }
 
+
+
 pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(req): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, (StatusCode, String)> {
-    let player = sqlx::query_as::<_, crate::models::Player>(
+    let player = sqlx::query_as::<_, crate::db::player::Player>(
         "SELECT * FROM players WHERE email = ?"
     )
     .bind(&req.email)

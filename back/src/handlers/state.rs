@@ -3,7 +3,7 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 use crate::{
-    AppState,
+    app::AppState,
     game::{init_new_player, reveal_fog},
     handlers::AuthPlayer,
     models::{PlanetTile, Unit, game::{GameState, InitResponse, VisibleTile}},
