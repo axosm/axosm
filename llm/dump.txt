@@ -1,5 +1,9 @@
 
 
+2026-05-28
+Ditch SQLx macros and use dynamic queries
+https://gemini.google.com/share/f2bfb8681dad
+
 2026-05-17
 ECS for Real-Time Browser Strategy Game in the Front End
 https://gemini.google.com/share/55b67c09b00a
