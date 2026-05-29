@@ -59,10 +59,10 @@ pub fn router(state: Arc<AppState>) -> Router {
     
     Router::new()
         // Auth
-        .route("/auth/register", post(handlers::auth::register))
-        .route("/auth/login",    post(handlers::auth::login))
+        // .route("/auth/register", post(handlers::auth::register))
+        // .route("/auth/login",    post(handlers::auth::login))
         // Game
-        .route("/api/state", get(handlers::state::get_state))
+        .route("/api/state", get(handlers::state::get_game_state))
         // .route("/api/state/:player_id", get(api::state::get_state))
         // .route("/api/move", post(api::move_unit::handler))
         // .route("/api/events", get(api::events::handler))

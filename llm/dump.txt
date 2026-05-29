@@ -1,6 +1,12 @@
 
 
 2026-05-29
+Online Mode (Authenticated) / Offline Mode (Unauthenticated / LAN). How Minecraft Handles It.
+Option 1: The Local "Session Key" (Recommended)
+Option 2: The "Multi-Profile" Cryptographic Identity (Advanced)
+https://gemini.google.com/share/52f1b351be97
+
+2026-05-29
 Replace sqlite/postgres pattern matching with rust feature flags
 https://gemini.google.com/share/b2cf312d7484
 
