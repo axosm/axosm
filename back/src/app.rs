@@ -1,8 +1,12 @@
+use axum::extract::FromRef;
 use std::sync::Arc;
 
-use axum::{Router, routing::{get, post}};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 use chrono::Utc;
-use sqlx::{SqlitePool};
+use sqlx::SqlitePool;
 
 use anyhow::Result;
 use tokio::sync::broadcast;
@@ -10,13 +14,28 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::handlers;
 
+#[cfg(feature = "local_mode")]
 pub struct AppState {
-    pub db: SqlitePool,
+    pub db: sqlx::SqlitePool,
     pub notify: broadcast::Sender<String>,
 }
 
+#[cfg(feature = "prod_mode")]
+pub struct AppState {
+    pub db: sqlx::PgPool,
+    pub jwt_secret: String,
+    //     pub notify: broadcast::Sender<String>,
+}
+
+// pub struct AppState {
+//     pub db: SqlitePool,
+//     pub notify: broadcast::Sender<String>,
+// }
+
 pub fn init_tracing() -> Result<()> {
-    let subscriber = FmtSubscriber::builder().with_max_level(tracing::Level::INFO).finish();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(tracing::Level::INFO)
+        .finish();
     tracing::subscriber::set_global_default(subscriber)?;
     Ok(())
 }
@@ -51,12 +70,11 @@ pub async fn init_state() -> anyhow::Result<Arc<AppState>> {
 //     let tx = state.notify.clone();
 
 //     loop {
-       
+
 //     }
 // }
 
 pub fn router(state: Arc<AppState>) -> Router {
-    
     Router::new()
         // Auth
         // .route("/auth/register", post(handlers::auth::register))

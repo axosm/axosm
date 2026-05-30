@@ -3,13 +3,17 @@ name = "sci4x-proto"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["local_mode"]
+prod_mode = ["dep:sqlx", "sqlx/postgres", "dep:jsonwebtoken"]
+local_mode = ["dep:sqlx", "sqlx/sqlite"]
+
 [dependencies]
 axum = { version = "0.8.7", features = ["json"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
 tokio-stream = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "macros", "sqlite"] }
 chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
@@ -19,7 +23,18 @@ futures-util = "0.3"
 futures = "0.3"
 async-stream = "0.3"
 
-bcrypt = "0.15"
-jsonwebtoken = "9"
 
 xxhash-rust = "=0.8.10"
+
+# Conditional dependencies for prod
+jsonwebtoken = { version = "9.3", optional = true }
+# bcrypt = { version = "0.15", optional = true }
+
+[dependencies.sqlx]
+version = "0.7"
+features = ["runtime-tokio-rustls", "macros", "sqlite"]
+optional = true
+# See why Gemini suggested this :
+# version = "0.7"
+# features = ["runtime-tokio-native-tls", "macros", "chrono"]
+# optional = true

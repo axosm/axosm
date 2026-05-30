@@ -10,11 +10,21 @@ PRAGMA foreign_keys = ON;
 -- 1. USERS & AUTHENTICATION
 -- ─────────────────────────────────────────────────────────────
 
+
+-- CREATE TABLE players (
+--   id             INTEGER  PRIMARY KEY AUTOINCREMENT,
+--   username       TEXT     NOT NULL,
+--   email          TEXT     NOT NULL UNIQUE,
+--   password_hash  TEXT     NOT NULL,
+--   created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+--   updated_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+--   last_login_at  TEXT
+-- );
+
 CREATE TABLE players (
   id             INTEGER  PRIMARY KEY AUTOINCREMENT,
-  username       TEXT     NOT NULL,
-  email          TEXT     NOT NULL UNIQUE,
-  password_hash  TEXT     NOT NULL,
+  session_key    TEXT     NOT NULL UNIQUE,
+  username       TEXT     NOT NULL ,
   created_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   last_login_at  TEXT
@@ -515,7 +525,7 @@ CREATE TABLE unit_cargo (
   PRIMARY KEY (unit_id, resource_type)
 );
 
--- aaaa see Squad based or single unit control, which one do you prefer ? 
+-- aaaa see Squad based or single unit control, which one do you prefer ?
 -- https://www.reddit.com/r/RealTimeStrategy/comments/182q4o3/squad_based_or_single_unit_control_which_one_do/
 
 -- PostGIS
@@ -803,5 +813,3 @@ CREATE TRIGGER trg_planets_updated_at
     BEGIN UPDATE planets SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = OLD.id; END;
 
 -- // TODO add missing triggers
-
-

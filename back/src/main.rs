@@ -19,27 +19,28 @@
 // │   └── events.rs     # EncounterEvent, domain logic
 // └── error.rs          # API error handling
 
+use anyhow::Result;
 use axum::{
-    extract::{State, Query, Path},
-    response::sse::{Sse, KeepAlive, Event},
+    Json, Router,
+    extract::{Path, Query, State},
+    response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
-    Json, Router
 };
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{SqlitePool, sqlite::SqliteQueryResult, FromRow};
+use sqlx::{FromRow, SqlitePool, sqlite::SqliteQueryResult};
 use std::{net::SocketAddr, sync::Arc, time::Duration};
+use tokio::net::TcpListener;
 use tokio::sync::broadcast::{self, Sender};
 use tokio::time::Instant;
-use tokio::net::TcpListener;
-use chrono::{Utc, DateTime};
 use tracing_subscriber::FmtSubscriber;
-use anyhow::Result;
 
 use futures_util::stream::{Stream, StreamExt};
 use std::convert::Infallible;
 use tokio_stream::wrappers::ReceiverStream;
 
 mod app;
+mod auth;
 mod handlers;
 // mod api;
 mod db;
@@ -168,7 +169,6 @@ async fn main() -> anyhow::Result<()> {
 //     Sse::new(stream).keep_alive(KeepAlive::new().interval(Duration::from_secs(15)))
 // }
 
-
 // // Background worker that checks move_orders and resolves arrivals
 // async fn run_worker(state: Arc<AppState>) {
 //     tracing::info!("worker started");
@@ -284,13 +284,10 @@ async fn main() -> anyhow::Result<()> {
 // // helper to extract column safely in process_arrival (SqliteRow access)
 // use sqlx::Row;
 
-
-
 // ##########################################  hash generation ##################################
 // see --https://chatgpt.com/c/6945cd39-b0e4-8327-bafb-a8d62d309825
 
 // use xxhash_rust::xxh3::xxh3_64;
-
 
 // const GENERATION_VERSION: u64 = 1;
 // const WORLD_SEED: u64 = 1;
@@ -312,8 +309,6 @@ async fn main() -> anyhow::Result<()> {
 // const TILE_TAG: u64 = 100;
 // const TILE_HEIGHT_TAG: u64 = 101;
 // const TILE_BIOME_TAG: u64 = 102;
-
-
 
 // fn hash64(values: &[u64]) -> u64 {
 //     let mut bytes = Vec::new();
@@ -337,7 +332,6 @@ async fn main() -> anyhow::Result<()> {
 // tileSeed   = hash(planetSeed, 4, 12, 9)
 
 // height     = noise(hash(tileSeed, "height"))
-
 
 // system_seed = hash(
 //     galaxy_seed,   // parent

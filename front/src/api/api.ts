@@ -33,11 +33,11 @@ export interface PlanetTile {
 
 export interface GameState {
   player_id: number;
-  planet_id: number;
-  galaxy_id: number;
-  system_id: number;
-  planet_seed: number;
-  subdivision: number;
+  // planet_id: number;
+  // galaxy_id: number;
+  // system_id: number;
+  // planet_seed: number;
+  // subdivision: number;
   units: Unit[];
   visible_tiles: PlanetTile[];
 }
@@ -49,33 +49,63 @@ export interface InitResponse {
 
 // ── API client ────────────────────────────────────────────────
 
-const BASE = '/api';
+const BASE = "/api";
+const IS_LOCAL = import.meta.env.VITE_GAME_MODE === "local";
 
 export class ApiClient {
-  private token: string | null = null;
+  private credential: string | null = null;
 
-  setToken(t: string) {
-    this.token = t;
-    localStorage.setItem('space4x_token', t);
+  constructor() {
+    this.initCredentials();
   }
 
-  loadToken() {
-    this.token = localStorage.getItem('space4x_token');
-    return this.token;
+  private initCredentials() {
+    if (IS_LOCAL) {
+      // Local Mode: Fallback straight to an automated local UUID device key
+      this.credential = localStorage.getItem("space4x_session_key");
+      if (!this.credential) {
+        this.credential = crypto.randomUUID();
+        localStorage.setItem("space4x_session_key", this.credential);
+      }
+    } else {
+      // Production Mode: Fetch JWT matching token key
+      this.credential = localStorage.getItem("space4x_token");
+    }
+  }
+
+  // Administers tokens after user successfully logins in Production
+  setToken(t: string) {
+    if (IS_LOCAL) return;
+    this.credential = t;
+    localStorage.setItem("space4x_token", t);
   }
 
   clearToken() {
-    this.token = null;
-    localStorage.removeItem('space4x_token');
+    this.credential = null;
+    localStorage.removeItem("space4x_token");
+    localStorage.removeItem("space4x_session_key");
   }
 
   private headers(): HeadersInit {
-    const h: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (this.token) h['Authorization'] = `Bearer ${this.token}`;
+    const h: Record<string, string> = { "Content-Type": "application/json" };
+
+    if (this.credential) {
+      if (IS_LOCAL) {
+        // Local mode compilation output sends custom session string header
+        h["X-Session-Key"] = this.credential;
+      } else {
+        // Production compilation output sends Bearer Authorization format
+        h["Authorization"] = `Bearer ${this.credential}`;
+      }
+    }
     return h;
   }
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<T> {
     const res = await fetch(BASE + path, {
       method,
       headers: this.headers(),
@@ -88,28 +118,38 @@ export class ApiClient {
     return res.json() as Promise<T>;
   }
 
-  async register(username: string, email: string, password: string): Promise<AuthResponse> {
-    return this.request('POST', '/api/auth/register', { username, email, password });
+  // ── Authentication Endpoints ───────────────────────────────
+
+  async register(
+    username: string,
+    email: string,
+    password: string,
+  ): Promise<AuthResponse> {
+    if (IS_LOCAL) throw new Error("Registration disabled in Local play.");
+    return this.request("POST", "/auth/register", {
+      username,
+      email,
+      password,
+    });
   }
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    return this.request('POST', '/api/auth/login', { email, password });
+    if (IS_LOCAL) throw new Error("Login disabled in Local play.");
+    return this.request("POST", "/auth/login", { email, password });
   }
 
-  // async initGame(): Promise<InitResponse> {
-  //   return this.request('POST', '/game/init');
-  // }
+  // ── Core Game State Engine ──────────────────────────────────
 
   async getGameState(): Promise<GameState> {
-    return this.request('GET', '/api/state');
-  }
-
-  async getVisibleTiles(planet_id: number): Promise<PlanetTile[]> {
-    return this.request('GET', `/api/visible-tiles?planet_id=${planet_id}`);
+    return this.request("GET", "/state");
   }
 
   async moveUnit(unit_id: number, to_face: number, to_u: number, to_v: number) {
-    return this.request('POST', `/api/units/${unit_id}/move`, { to_face, to_u, to_v });
+    return this.request("POST", `/api/units/${unit_id}/move`, {
+      to_face,
+      to_u,
+      to_v,
+    });
   }
 }
 
