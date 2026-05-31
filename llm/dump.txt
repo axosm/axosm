@@ -9,7 +9,7 @@ https://gemini.google.com/share/52f1b351be97
 2026-05-29
 Replace sqlite/postgres pattern matching with rust feature flags
 https://gemini.google.com/share/b2cf312d7484
-
+edit 2026-05-31 : it is almost always better to stick with a single flag and use the not() operator (i.e. #[cfg(not(feature = "local_mode"))])
 
 2026-05-28
 Ditch SQLx macros and use dynamic queries

@@ -41,6 +41,7 @@ use tokio_stream::wrappers::ReceiverStream;
 
 mod app;
 mod auth;
+mod dto;
 mod handlers;
 // mod api;
 mod db;

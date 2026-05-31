@@ -14,6 +14,19 @@ use tracing_subscriber::FmtSubscriber;
 
 use crate::handlers;
 
+// #[derive(Clone)]
+// pub enum DbPool {
+//     Sqlite(sqlx::SqlitePool),
+//     Postgres(sqlx::PgPool),
+// }
+
+// 1. Define the DbPool type alias based on the enabled feature
+#[cfg(feature = "local_mode")]
+pub type DbPool = sqlx::SqlitePool;
+
+#[cfg(not(feature = "local_mode"))]
+pub type DbPool = sqlx::PgPool;
+
 #[cfg(feature = "local_mode")]
 pub struct AppState {
     pub db: sqlx::SqlitePool,

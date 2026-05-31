@@ -10,12 +10,13 @@ use crate::{
     app::AppState,
     // game::{init_new_player, reveal_fog},
     auth::AuthPlayer,
+    dto::state::GameStateDto,
 };
 
 pub async fn get_game_state(
     State(state): State<Arc<AppState>>,
     auth: AuthPlayer,
-) -> Result<Json<GameState>, (StatusCode, String)> {
+) -> Result<Json<GameStateDto>, (StatusCode, String)> {
     let gs = load_game_state(&state.db, auth.0)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
