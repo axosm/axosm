@@ -4,9 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [features]
-default = []
-# Local mode acts as our toggle switch
-local_mode = []
+# By default, we use production features (postgres)
+default = ["local_mode"]
+
+# Toggle switches
+production_mode = ["sqlx/postgres", "dep:jsonwebtoken"]
+local_mode = ["sqlx/sqlite"]
+# Maybe we will need the feature chrono : The sqlx crate with the chrono feature
+# allows you to work with DateTime types in Rust when interacting with databases.
 
 [dependencies]
 axum = { version = "0.8.7", features = ["json"] }
@@ -26,23 +31,9 @@ async-stream = "0.3"
 # used for seed using hash function
 xxhash-rust = "=0.8.10"
 
-# --- Shared Base Configuration for SQLx ---
-[dependencies.sqlx]
-version = "0.7"
-features = ["runtime-tokio-rustls"]
+# One single, clean SQLx definition
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls"] }
 
-# --- PRODUCTION CONFIGURATION (Default) ---
-# Active ONLY when local_mode is NOT specified
-[target.'cfg(not(feature = "local_mode"))'.dependencies]
+# Optional production-only dependencies
 jsonwebtoken = { version = "9.3", optional = true }
 # bcrypt = { version = "0.15", optional = true }
-
-[target.'cfg(not(feature = "local_mode"))'.dependencies.sqlx]
-features = ["postgres"]
-
-# --- LOCAL CONFIGURATION ---
-# Active ONLY when running with --features local_mode
-[target.'cfg(feature = "local_mode")'.dependencies.sqlx]
-features = ["sqlite"]
-# Maybe we will need the feature chrono : The sqlx crate with the chrono feature
-# allows you to work with DateTime types in Rust when interacting with databases.
