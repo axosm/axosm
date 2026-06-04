@@ -45,6 +45,7 @@ mod dto;
 mod handlers;
 // mod api;
 mod db;
+mod proc_gen;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

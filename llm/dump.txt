@@ -1,4 +1,7 @@
 
+2026-06-05
+Database type rework for seed/proc_gen
+https://gemini.google.com/share/b5b85508d117
 
 2026-05-29
 Online Mode (Authenticated) / Offline Mode (Unauthenticated / LAN). How Minecraft Handles It.
