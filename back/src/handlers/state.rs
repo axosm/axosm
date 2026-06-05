@@ -69,7 +69,12 @@ pub async fn get_game_state(
 }
 
 
-continue form there (see last response ):
+
+continue from here
+https://gemini.google.com/share/f1d952395636
+add function galacy cluster / densisty to proc gen module
+
+then (see last response ):
 https://gemini.google.com/app/cae28d3bd06a3e96
 or https://gemini.google.com/share/b5b85508d117
 
@@ -124,13 +129,13 @@ pub async fn load_game_state(
             target_sz = ((search_seed >> 24) % 1000) as i64 - 500;
 
             // Derive seeds following your exact hierarchy chain
-            let g_seed = derive_seed(
+            let galaxy_seed = derive_seed(
                 proc_gen::WORLD_SEED,
                 proc_gen::GALAXY_TAG,
                 &[target_galaxy_id],
             );
             let sys_seed = derive_seed(
-                g_seed,
+                galaxy_seed,
                 proc_gen::SYSTEM_TAG,
                 &[target_sx, target_sy, target_sz],
             );

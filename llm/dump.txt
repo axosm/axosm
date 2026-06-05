@@ -1,5 +1,9 @@
 
 2026-06-05
+Density Filter / Realistic "Clumping" (Galactic Arms) / ThreeJS demo of galactic arms
+https://gemini.google.com/share/f1d952395636
+
+2026-06-05
 Database type rework for seed/proc_gen
 https://gemini.google.com/share/b5b85508d117
 
