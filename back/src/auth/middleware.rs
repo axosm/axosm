@@ -45,13 +45,27 @@ where
             return Ok(AuthPlayer(row.0));
         }
 
-        let new_id = sqlx::query("INSERT INTO players (session_key, username) VALUES (?, ?)")
-            .bind(session_key)
-            .bind(format!("Commander_{}", &session_key[..6]))
-            .execute(&app_state.db)
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-            .last_insert_rowid();
+        // // 1. Atomic Upsert: Try to insert, if it exists, do nothing.
+        // // 2. RETURNING id: Instantly gives us the ID whether it was just created or already existed.
+        // let default_username = format!(
+        //     "Commander_{}",
+        //     &session_key[..std::cmp::min(6, session_key.len())]
+        // );
+
+        let new_id = sqlx::query(
+            r#"
+                INSERT INTO players (session_key, username)
+                VALUES (?, ?)
+                ON CONFLICT(session_key) DO UPDATE SET session_key = excluded.session_key
+                RETURNING id
+                "#,
+        )
+        .bind(session_key)
+        .bind(format!("Commander_{}", &session_key[..6]))
+        .execute(&app_state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+        .last_insert_rowid();
 
         Ok(AuthPlayer(new_id))
     }

@@ -53,9 +53,9 @@ CREATE TABLE empire_members (
 CREATE TABLE galaxies (
   id          INTEGER  PRIMARY KEY AUTOINCREMENT,
   seed        INTEGER  NOT NULL,
-  x           REAL     NOT NULL,
-  y           REAL     NOT NULL,
-  z           REAL     NOT NULL,
+  x           INTEGER     NOT NULL,
+  y           INTEGER     NOT NULL,
+  z           INTEGER     NOT NULL,
   created_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   UNIQUE(x, y, z)
@@ -79,8 +79,8 @@ CREATE TABLE planets (
   id              INTEGER  PRIMARY KEY AUTOINCREMENT,
   star_system_id  INTEGER  NOT NULL REFERENCES star_systems(id),
   seed            INTEGER  NOT NULL,
-  x               REAL     NOT NULL,
-  y               REAL     NOT NULL,
+  x               INTEGER     NOT NULL,
+  y               INTEGER     NOT NULL,
   subdivision     INTEGER  NOT NULL, -- Goldberg polyhedron resolution (N)
   created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
@@ -94,9 +94,9 @@ CREATE TABLE space_objects (
   star_system_id INTEGER  NOT NULL REFERENCES star_systems(id),
   object_type    TEXT     NOT NULL
                  CHECK(object_type IN ('asteroid','pirate_base','anomaly','wreck','event')),
-  x              REAL     NOT NULL,
-  y              REAL     NOT NULL,
-  z              REAL     NOT NULL DEFAULT 0,
+  x              INTEGER     NOT NULL,
+  y              INTEGER     NOT NULL,
+  z              INTEGER     NOT NULL DEFAULT 0,
   properties     TEXT,                          -- JSON: hp, loot table, difficulty, etc.
   spawned_at     TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   despawned_at   TEXT                           -- NULL = still active

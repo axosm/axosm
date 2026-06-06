@@ -118,7 +118,7 @@ pub async fn load_game_state(
             // Pick a deterministic grid system location using player identity and attempt index
             let search_seed = derive_seed(
                 proc_gen::WORLD_SEED,
-                999, /* SEARCH_TAG */
+                999, /* SEARCH_TAG. If switching to random_number instead of 999, read this : https://gemini.google.com/share/3d17aadbdbc3*/
                 &[player_id, search_attempt],
             );
 
