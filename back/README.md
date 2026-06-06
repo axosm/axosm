@@ -36,7 +36,7 @@ TODO
 - add tauri to the project : https://v2.tauri.app/start/create-project/#manual-setup-tauri-cli
 
 
-## Project architecture
+## Project architecture (might not be up to date with the code)
 
 src/
 ├── main.rs
@@ -77,8 +77,10 @@ src/
 │
 ├── services/                  # Business logic
 │   ├── mod.rs
-│   ├── game.rs                # init_new_player, load_game_state
+│   ├── game_init.rs           # Coordinates DB calls + game::map::spawn
+│   ├── game.rs                # init_new_player, load_game_state         -> merge with game_init.rs? 
 │   ├── resources.rs           # compute_resources, tick production
+│   ├── resource_tick.rs       # Loops players, loads state, calls game::production, saves back   -> merge with resources.rs? 
 │   ├── battle.rs              # battle resolution
 │   ├── fleet.rs               # movement, arrival
 │   └── alliance.rs            # invite, kick, rank
@@ -88,6 +90,14 @@ src/
 │   ├── fog.rs                 # reveal_fog, visibility calc
 │   ├── combat.rs              # damage formulas
 │   ├── production.rs          # rate calculations
-│   └── map.rs                 # planet tile generation
+│   └── map/                   # planet tile generation
+│       ├── coordinates.rs
+│       └── spawn.rs           # fn evaluate_spawn_position(...) -> Option<Coordinates>
 │
+│   └── proc_gen/              # Pure mathematical generation
+│       ├── mod.rs             # Exposes generation entrypoints
+│       ├── galaxy.rs          # Generates systems based on a game seed
+│       ├── planet.rs          # Goldberg spheres, plate tectonics, resource seeds
+│       └── noise.rs           # Simplex/Perlin noise wrappers
+
 └── routes.rs                  # Router assembly, all .route() calls
