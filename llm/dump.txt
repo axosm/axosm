@@ -1,4 +1,9 @@
 
+
+2026-06-07
+Discusison on database type, min/max xyz value and possible underflow and NaN
+https://gemini.google.com/share/2864aafc8d30
+
 2026-06-05
 Density Filter / Realistic "Clumping" (Galactic Arms) / ThreeJS demo of galactic arms
 https://gemini.google.com/share/f1d952395636

@@ -31,8 +31,12 @@ impl Galaxy {
         Galaxy { g_type, seed }
     }
 
-    // Check if a local coordinate within the galaxy bounds contains a star
+    // Check if a local coordinate within the galaxy bounds contains a star, see :
     // from https://gemini.google.com/share/96fdd16b6659
+    //
+    // Discusison on database type, min/max xyz value and possible underflow and NaN
+    // https://gemini.google.com/share/2864aafc8d30
+    change f32 to either i32 or i64, see discussion above
     fn evaluate_star_density(&self, local_pos: (f32, f32, f32)) -> bool {
         let (x, y, z) = local_pos;
         let r = (x * x + y * y + z * z).sqrt();
