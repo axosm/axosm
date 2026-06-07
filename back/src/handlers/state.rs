@@ -16,57 +16,45 @@ use crate::{
     },
     // dto::state::GameStateDto,
 };
+use crate::models::GameStateDto;
+use crate::services::map::spawn;
 
-#[derive(FromRow, Debug, Serialize)]
-pub struct UnitRow {
-    pub id: i64,
-    pub unit_type: String,
-    pub is_squad: bool,
-    pub count: i64,
-    pub hp: i64,
-    pub player_id: i64,
-    pub in_battle: bool,
-    pub location_mode: String,
-    pub planet_id: Option<i64>, // Using Option in case these can be null
-    pub planet_face: Option<i64>,
-    pub planet_u: Option<f64>,
-    pub planet_v: Option<f64>,
-    pub customization: Option<String>,
-}
 
-#[derive(FromRow, Debug, Serialize)]
-pub struct BuildingRow {
-    pub id: i64,
-    pub player_id: i64,
-    pub building_type: String,
-    pub tile_id: i64,
-    pub level: i64,
-    pub hp: i64,
-    pub max_hp: i64,
-    pub under_attack: i64,
-    pub destroyed_at: Option<String>,
-    pub can_fly: i64,
-    pub flight_state: Option<String>,
-    pub construction_done_at: Option<String>,
-}
 
-// Ensure your GameStateDto includes everything your frontend needs
-#[derive(serde::Serialize)]
-pub struct GameStateDto {
-    pub player_id: i64,
-    pub units: Vec<UnitRow>,
-    pub buildings: Vec<BuildingRow>,
-}
+
+
+
+
+use std::sync::Arc;
+use axum::{extract::State, http::StatusCode, Json};
+use crate::app_state::AppState;
+use crate::auth::AuthPlayer;
+use crate::models::GameStateDto;
+use crate::services::map::spawn;
 
 pub async fn get_game_state(
     State(state): State<Arc<AppState>>,
     auth: AuthPlayer,
 ) -> Result<Json<GameStateDto>, (StatusCode, String)> {
-    let gs = load_game_state(&state.db, auth.0)
+    let player_id = auth.0;
+
+    let gs = spawn::load_or_initialize_player(&state.db, player_id)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
     Ok(Json(gs))
 }
+
+
+// pub async fn get_game_state(
+//     State(state): State<Arc<AppState>>,
+//     auth: AuthPlayer,
+// ) -> Result<Json<GameStateDto>, (StatusCode, String)> {
+//     let gs = load_game_state(&state.db, auth.0)
+//         .await
+//         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+//     Ok(Json(gs))
+// }
 
 
 
@@ -78,7 +66,9 @@ then (see last response ):
 https://gemini.google.com/app/cae28d3bd06a3e96
 or https://gemini.google.com/share/b5b85508d117
 
-
+// The code below is being refactored into appropriate modules
+// Use the function above instead
+//
 pub async fn load_game_state(
     pool: &sqlx::SqlitePool,
     player_id: i64,
@@ -224,6 +214,9 @@ pub async fn load_game_state(
     })
 }
 
+// The code below does not work for new players.
+// It has no proc gen.
+//
 // // Get first unit to locate player's planet
 // let unit = sqlx::query_as::<_, Unit>(
 //     "SELECT id, unit_type, is_squad, count, hp, player_id, in_battle, location_mode,
