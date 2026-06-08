@@ -46,6 +46,8 @@ mod handlers;
 // mod api;
 mod db;
 mod proc_gen;
+mod repositories;
+mod services;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

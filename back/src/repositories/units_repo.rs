@@ -1,7 +1,3 @@
-use crate::models::{BuildingRow, UnitRow};
-use anyhow::Result;
-use sqlx::{Sqlite, SqlitePool, Transaction}; // Adjust paths to where your Rows are defined
-
 pub async fn fetch_player_units(pool: &SqlitePool, player_id: i64) -> Result<Vec<UnitRow>> {
     let units = sqlx::query_as::<_, UnitRow>(
         "SELECT * FROM units WHERE player_id = ? AND location_mode = 'planet_surface'",
@@ -10,14 +6,6 @@ pub async fn fetch_player_units(pool: &SqlitePool, player_id: i64) -> Result<Vec
     .fetch_all(pool)
     .await?;
     Ok(units)
-}
-
-pub async fn fetch_player_buildings(pool: &SqlitePool, player_id: i64) -> Result<Vec<BuildingRow>> {
-    let buildings = sqlx::query_as::<_, BuildingRow>("SELECT * FROM buildings WHERE player_id = ?")
-        .bind(player_id)
-        .fetch_all(pool)
-        .await?;
-    Ok(buildings)
 }
 
 /// Persists the generated initial entities inside a single transaction safely
