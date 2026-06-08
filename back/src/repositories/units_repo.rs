@@ -21,34 +21,6 @@ pub async fn insert_initial_player_state(
     let (target_sx, target_sy, target_sz) = coords;
     let (safe_face, safe_u, safe_v) = safe_tile;
 
-    let g_id: i64 = sqlx::query_scalar(
-        "INSERT INTO galaxies (seed, x, y, z) VALUES (?, 0.0, 0.0, 0.0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-    )
-    .bind(target_galaxy_id)
-    .fetch_one(&mut **tx)
-    .await?;
-
-    let sys_id: i64 = sqlx::query_scalar(
-        "INSERT INTO star_systems (galaxy_id, seed, x, y, z) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-    )
-    .bind(g_id)
-    .bind(target_galaxy_id)
-    .bind(target_sx)
-    .bind(target_sy)
-    .bind(target_sz)
-    .fetch_one(&mut **tx)
-    .await?;
-
-    let planet_id: i64 = sqlx::query_scalar(
-        "INSERT INTO planets (star_system_id, seed, x, y, subdivision) VALUES (?, ?, ?, ?, 0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-    )
-    .bind(sys_id)
-    .bind(planet_seed as i64)
-    .bind(target_orbit as f64)
-    .bind(target_orbit as f64)
-    .fetch_one(&mut **tx)
-    .await?;
-
     sqlx::query(
         r#"
         INSERT INTO units (

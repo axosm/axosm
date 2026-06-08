@@ -1,24 +1,18 @@
+use crate::models::StarSystemRow;
+use anyhow::Result;
+use sqlx::SqlitePool;
+
+
 /// Persists the generated initial entities inside a single transaction safely
-pub async fn insert_initial_player_state(
+pub async fn insert_star_system(
     tx: &mut Transaction<'_, Sqlite>,
-    player_id: i64,
-    target_galaxy_id: i64,
+    seed: u64,
     coords: (i64, i64, i64),
-    planet_seed: u64,
-    target_orbit: i64,
-    safe_tile: (u8, u32, u32),
+    galaxy_id: i64,
 ) -> Result<()> {
-    let (target_sx, target_sy, target_sz) = coords;
-    let (safe_face, safe_u, safe_v) = safe_tile;
+    let (x, y, z) = coords;
 
-    let g_id: i64 = sqlx::query_scalar(
-        "INSERT INTO galaxies (seed, x, y, z) VALUES (?, 0.0, 0.0, 0.0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-    )
-    .bind(target_galaxy_id)
-    .fetch_one(&mut **tx)
-    .await?;
-
-    let sys_id: i64 = sqlx::query_scalar(
+    let id: i64 = sqlx::query_scalar(
         "INSERT INTO star_systems (galaxy_id, seed, x, y, z) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET id=id RETURNING id"
     )
     .bind(g_id)
