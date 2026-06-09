@@ -37,7 +37,7 @@ fn get_cosmic_density(cx: i64, cy: i64, cz: i64) -> f64 {
     normalized.clamp(0.0, 1.0)
 }
 
-TODO add spawn rate
+TODO add spawn roll
 
 fn with spawn () {
 // 1. Determine local cosmic density
