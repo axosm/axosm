@@ -36,3 +36,42 @@ fn get_cosmic_density(cx: i64, cy: i64, cz: i64) -> f64 {
     let normalized = (raw_density + 1.5) / 3.0;
     normalized.clamp(0.0, 1.0)
 }
+
+TODO add spawn rate
+
+fn with spawn () {
+// 1. Determine local cosmic density
+let density = get_cosmic_density(target_cx, target_cy, target_cz);
+
+// 2. Get your deterministic seed for this cosmic slot
+let cosmic_seed = derive_seed(
+    proc_gen::WORLD_SEED, 
+    222, /* GALAXY_SPAWN_TAG */ 
+    &[target_cx, target_cy, target_cz]
+);
+let spawn_roll = ((cosmic_seed % 1000).abs() as f64) / 1000.0; // 0.0 to 1.0
+
+// 3. Apply a threshold filter
+let galaxy_exists = if density < 0.4 {
+    // --- THE VOIDS ---
+    // 40% of the entire universe has zero chance of spawning anything.
+    false 
+} else if density < 0.7 {
+    // --- THE FILAMENTS ---
+    // In the stringy bridges, there's a low-to-medium chance of a galaxy spawning.
+    spawn_roll < 0.08 // 8% spawn chance
+} else {
+    // --- THE NODES / CLUSTERS ---
+    // In the high-density intersection hubs, galaxies clump heavily.
+    spawn_roll < 0.45 // 45% spawn chance
+};
+
+if !galaxy_exists {
+    // Move on to the next cosmic coordinate set
+    search_attempt += 1;
+    continue;
+}
+
+// Success! A galaxy is born here. 
+// Now you can derive its unique `target_galaxy_id` and proceed inward...
+}
