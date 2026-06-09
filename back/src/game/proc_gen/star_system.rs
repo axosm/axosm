@@ -40,9 +40,9 @@ impl Galaxy {
     fn evaluate_star_density(&self, local_pos: (f32, f32, f32)) -> bool {
         let (x, y, z) = local_pos;
         let r = (x * x + y * y + z * z).sqrt();
-        let theta = y.atan2(x);
+        let theta = y.atan2(x); // TODO are there faster function than atan2?
 
-        if r > 1.0 {
+        if r > 1.0 { // TODO 1.0 is probably to small. The value depends on max xyz but its mostly emptyness between galaxies.
             return false;
         } // Edge of galaxy
 
