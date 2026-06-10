@@ -15,7 +15,7 @@ struct Galaxy {
 }
 
 impl Galaxy {
-    // Option A : too simplistic and should not contain rng
+    // Should not contain rng
     fn new(global_pos: (f32, f32, f32)) -> Self {
         let seed = determine_seed(global_pos);
         let mut rng = SimpleRng::new(seed);
@@ -31,8 +31,7 @@ impl Galaxy {
 
         Galaxy { g_type, seed }
     }
-
-    // Option B : What we should use
+        
     // Check if a local coordinate within the galaxy bounds contains a star, see :
     // from https://gemini.google.com/share/96fdd16b6659
     //
