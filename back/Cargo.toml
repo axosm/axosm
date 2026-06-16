@@ -3,6 +3,11 @@ name = "axosm"
 version = "0.1.0"
 edition = "2024"
 
+# See https://doc.rust-lang.org/book/ch09-01-unrecoverable-errors-with-panic.html
+# It makes the binary lighter
+#[profile.release]
+#panic = 'abort'
+
 [features]
 # By default, we use production features (postgres)
 default = ["local_mode"]
