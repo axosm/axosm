@@ -1,4 +1,7 @@
 
+2026-06-18
+game speed table for local
+https://gemini.google.com/share/f473158c3518
 
 2026-06-07
 Discusison on database type, min/max xyz value and possible underflow and NaN
