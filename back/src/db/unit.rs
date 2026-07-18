@@ -1,3 +1,4 @@
+use serde::Serialize;
 use sqlx::prelude::FromRow;
 
 #[derive(FromRow, Debug, Serialize)]

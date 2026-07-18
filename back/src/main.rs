@@ -19,25 +19,25 @@
 // │   └── events.rs     # EncounterEvent, domain logic
 // └── error.rs          # API error handling
 
-use anyhow::Result;
-use axum::{
-    Json, Router,
-    extract::{Path, Query, State},
-    response::sse::{Event, KeepAlive, Sse},
-    routing::{get, post},
-};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, SqlitePool, sqlite::SqliteQueryResult};
-use std::{net::SocketAddr, sync::Arc, time::Duration};
+// use anyhow::Result;
+// use axum::{
+//     Json, Router,
+//     extract::{Path, Query, State},
+//     response::sse::{Event, KeepAlive, Sse},
+//     routing::{get, post},
+// };
+// use chrono::{DateTime, Utc};
+// use serde::{Deserialize, Serialize};
+// use sqlx::{FromRow, SqlitePool, sqlite::SqliteQueryResult};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
-use tokio::sync::broadcast::{self, Sender};
-use tokio::time::Instant;
-use tracing_subscriber::FmtSubscriber;
+// use tokio::sync::broadcast::{self, Sender};
+// use tokio::time::Instant;
+// use tracing_subscriber::FmtSubscriber;
 
-use futures_util::stream::{Stream, StreamExt};
-use std::convert::Infallible;
-use tokio_stream::wrappers::ReceiverStream;
+// use futures_util::stream::{Stream, StreamExt};
+// use std::convert::Infallible;
+// use tokio_stream::wrappers::ReceiverStream;
 
 mod app;
 mod auth;
@@ -45,7 +45,7 @@ mod dto;
 mod handlers;
 // mod api;
 mod db;
-mod proc_gen;
+mod game;
 mod repositories;
 mod services;
 

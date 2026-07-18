@@ -1,11 +1,8 @@
-use axum::extract::FromRef;
+// use axum::extract::FromRef;
 use std::sync::Arc;
 
-use axum::{
-    Router,
-    routing::{get, post},
-};
-use chrono::Utc;
+use axum::{Router, routing::get};
+// use chrono::Utc;
 use sqlx::SqlitePool;
 
 use anyhow::Result;
@@ -33,7 +30,7 @@ pub struct AppState {
     pub notify: broadcast::Sender<String>,
 }
 
-#[cfg(feature = "prod_mode")]
+#[cfg(feature = "production_mode")]
 pub struct AppState {
     pub db: sqlx::PgPool,
     pub jwt_secret: String,

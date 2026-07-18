@@ -34,6 +34,8 @@ pub const TILE_TAG: u64 = 4;
 
 pub const PLANET_SUBDIVISION_TAG: u64 = 12;
 
+pub const GALAXY_SPAWN_TAG: u64 = 222;
+
 // # Adding Features Later
 // Do not change hierarchy.
 // Add new tags.

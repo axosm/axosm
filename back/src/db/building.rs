@@ -1,3 +1,6 @@
+use serde::Serialize;
+use sqlx::prelude::FromRow;
+
 #[derive(FromRow, Debug, Serialize)]
 pub struct BuildingRow {
     pub id: i64,

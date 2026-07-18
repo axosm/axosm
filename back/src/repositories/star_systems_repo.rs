@@ -2,7 +2,6 @@ use crate::models::StarSystemRow;
 use anyhow::Result;
 use sqlx::SqlitePool;
 
-
 /// Persists the generated initial entities inside a single transaction safely
 pub async fn insert_star_system(
     tx: &mut Transaction<'_, Sqlite>,

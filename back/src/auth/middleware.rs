@@ -95,7 +95,7 @@ where
 // ==========================================
 // PRODUCTION BUILD ONLY: Postgres + JWT
 // ==========================================
-#[cfg(feature = "prod_mode")]
+#[cfg(feature = "production_mode")]
 impl<S> FromRequestParts<S> for AuthPlayer
 where
     Arc<AppState>: FromRef<S>,

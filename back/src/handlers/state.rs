@@ -11,7 +11,7 @@ use crate::{
     app::AppState,
     // game::{init_new_player, reveal_fog},
     auth::AuthPlayer,
-    proc_gen::seed::{
+    game::seed::{
         GALAXY_TAG, PLANET_SUBDIVISION_TAG, PLANET_TAG, SYSTEM_TAG, WORLD_SEED, derive_seed,
     },
     // dto::state::GameStateDto,

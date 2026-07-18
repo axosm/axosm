@@ -1,4 +1,4 @@
-use crate::models::BuildingRow;
+use crate::db::building::BuildingRow;
 use anyhow::Result;
 use sqlx::SqlitePool;
 
