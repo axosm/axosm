@@ -8,3 +8,11 @@ pub struct GameStateDto {
     pub units: Vec<UnitsDto>,
     pub buildings: Vec<BuildingssDto>,
 }
+
+#[derive(Serialize)]
+// #[derive(serde::Serialize)]
+pub struct UnitsDto {}
+
+#[derive(Serialize)]
+// #[derive(serde::Serialize)]
+pub struct BuildingssDto {}

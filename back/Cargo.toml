@@ -34,7 +34,7 @@ futures = "0.3"
 async-stream = "0.3"
 
 # used for seed using hash function
-xxhash-rust = { version = "1.0", features = ["xxh3"] }
+xxhash-rust = { version = "0.8.17", features = ["xxh3"] }
 
 # One single, clean SQLx definition
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls"] }

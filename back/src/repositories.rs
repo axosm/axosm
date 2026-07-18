@@ -1,4 +1,4 @@
-pub mod building_repo;
+pub mod buildings_repo;
 pub mod galaxy_repo;
 pub mod planet_repo;
 pub mod player_repo;

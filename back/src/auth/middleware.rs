@@ -23,6 +23,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let app_state = Arc::<AppState>::from_ref(state);
 
+        // 1. Get the key the TypeScript app sent
         let session_key = parts
             .headers
             .get("X-Session-Key")
@@ -30,10 +31,11 @@ where
             .ok_or_else(|| {
                 (
                     StatusCode::UNAUTHORIZED,
-                    "Missing X-Session-Key header".to_string(),
+                    "Missing X-Session-Key".to_string(),
                 )
             })?;
 
+        // 2. FAST PATH: Check if they are already in the database (99% of requests)
         let existing: Option<(i64,)> =
             sqlx::query_as("SELECT id FROM players WHERE session_key = ?")
                 .bind(session_key)
@@ -42,34 +44,53 @@ where
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
         if let Some(row) = existing {
-            return Ok(AuthPlayer(row.0));
+            return Ok(AuthPlayer(row.0)); // Found them! Return their ID.
         }
 
-        // // 1. Atomic Upsert: Try to insert, if it exists, do nothing.
-        // // 2. RETURNING id: Instantly gives us the ID whether it was just created or already existed.
-        // let default_username = format!(
-        //     "Commander_{}",
-        //     &session_key[..std::cmp::min(6, session_key.len())]
-        // );
+        // 3. SLOW PATH: This is their very first connection. Automatically create them.
+        let username_len = std::cmp::min(6, session_key.len());
+        let default_username = format!("Player_{}", &session_key[..username_len]);
 
-        let new_id = sqlx::query(
+        let player_id: i64 = sqlx::query_scalar(
             r#"
-                INSERT INTO players (session_key, username)
-                VALUES (?, ?)
-                ON CONFLICT(session_key) DO UPDATE SET session_key = excluded.session_key
-                RETURNING id
-                "#,
+            INSERT INTO players (session_key, username)
+            VALUES (?, ?)
+            ON CONFLICT(session_key) DO UPDATE SET session_key = excluded.session_key
+            RETURNING id
+            "#,
         )
         .bind(session_key)
-        .bind(format!("Commander_{}", &session_key[..6]))
-        .execute(&app_state.db)
+        .bind(default_username)
+        .fetch_one(&app_state.db)
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
-        .last_insert_rowid();
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-        Ok(AuthPlayer(new_id))
+        Ok(AuthPlayer(player_id))
     }
 }
+
+// TypeScript
+// // On game startup:
+// let sessionKey = localStorage.getItem("game_session_key");
+
+// if (!sessionKey) {
+//     // Generate a simple unique random string
+//     sessionKey = Math.random().toString(36).substring(2) + Date.now().toString(36);
+//     localStorage.setItem("game_session_key", sessionKey);
+// }
+
+// // Every time you talk to your Axum API:
+// async function sendGameAction(actionData: any) {
+//     const response = await fetch("/api/action", {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json",
+//             "X-Session-Key": sessionKey // <--- Always include this!
+//         },
+//         body: JSON.stringify(actionData)
+//     });
+//     return response.json();
+// }
 
 // ==========================================
 // PRODUCTION BUILD ONLY: Postgres + JWT

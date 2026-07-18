@@ -45,8 +45,8 @@ let density = get_cosmic_density(target_cx, target_cy, target_cz);
 
 // 2. Get your deterministic seed for this cosmic slot
 let cosmic_seed = derive_seed(
-    proc_gen::WORLD_SEED, 
-    222, /* GALAXY_SPAWN_TAG */ 
+    proc_gen::WORLD_SEED,
+    222, /* GALAXY_SPAWN_TAG */
     &[target_cx, target_cy, target_cz]
 );
 let spawn_roll = ((cosmic_seed % 1000).abs() as f64) / 1000.0; // 0.0 to 1.0
@@ -55,7 +55,7 @@ let spawn_roll = ((cosmic_seed % 1000).abs() as f64) / 1000.0; // 0.0 to 1.0
 let galaxy_exists = if density < 0.4 {
     // --- THE VOIDS ---
     // 40% of the entire universe has zero chance of spawning anything.
-    false 
+    false
 } else if density < 0.7 {
     // --- THE FILAMENTS ---
     // In the stringy bridges, there's a low-to-medium chance of a galaxy spawning.
@@ -72,6 +72,6 @@ if !galaxy_exists {
     continue;
 }
 
-// Success! A galaxy is born here. 
+// Success! A galaxy is born here.
 // Now you can derive its unique `target_galaxy_id` and proceed inward...
 }
