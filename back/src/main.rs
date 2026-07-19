@@ -46,6 +46,7 @@ mod handlers;
 // mod api;
 mod db;
 mod game;
+mod maths;
 mod repositories;
 mod services;
 

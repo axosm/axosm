@@ -11,7 +11,7 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
 
     // If completely empty, trigger initialization using deterministic generator paths
     if units.is_empty() && buildings.is_empty() {
-        let spawn = game_init::find_starting_location(player_id);
+        let spawn = game_init::find_starting_location();
 
         let mut tx = pool.begin().await?;
 

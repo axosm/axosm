@@ -8,7 +8,7 @@ use crate::game::proc_gen::seed::{WORLD_SEED, GALAXY_SPAWN_TAG, derive_seed};
 // Galaxies are spread like filaments
 
 // A) A hypothetical Cosmic Density Function using xxh3 and math
-fn check_cosmic_density(galaxy_seed: u64, x: i64, y: i64, z: i64) -> bool {
+fn check_cosmic_density(x: i32, y: i32, z: i32) -> bool {
     // Convert your seed/coordinates into a float value between 0.0 and 1.0
     // Using simple trig functions as you mentioned:
     let fx = x as f64 * 0.1;
@@ -44,11 +44,7 @@ fn check_cosmic_density(galaxy_seed: u64, x: i64, y: i64, z: i64) -> bool {
         spawn_roll < 0.45 // 45% spawn chance
     };
 
-    if !galaxy_exists {
-        // Move on to the next cosmic coordinate set
-        search_attempt += 1;
-        continue;
-    }
+    galaxy_exists
 }
 
 // // B) Another Cosmic Density Function. Not sure what is the difference with check_cosmic_density.
