@@ -13,6 +13,17 @@ fn find_starting_galaxy_location() -> (i32, i32, i32) {
     }
 }
 
+fn find_starting_star_system_location() -> (i32, i32, i32) {
+    let mut spiral = Spiral3D::new();
+
+    loop {
+        let (x, y, z) = spiral.next().unwrap();
+        if check_cosmic_density(x, y, z) {
+            return (x, y, z);
+        }
+    }
+}
+
 pub fn find_starting_location() -> (i32, i32, i32, i32) {
     let (galaxy_x, galaxy_y, galaxy_z) = find_starting_galaxy_location();
     let galaxy_seed = derive_seed(
@@ -20,6 +31,8 @@ pub fn find_starting_location() -> (i32, i32, i32, i32) {
         GALAXY_TAG,
         &[galaxy_x as i64, galaxy_y as i64, galaxy_z as i64],
     );
+
+    let (star_system_x, star_system_y, star_system_z) = find_starting_star_system_location();
 
     let mut search_attempt = 0i64;
 

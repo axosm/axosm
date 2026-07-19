@@ -7,6 +7,7 @@ pub struct Spiral3D {
 
 impl Spiral3D {
     pub fn new() -> Self {
+        // If we do not want to start at (0, 0, 0), we simply add an offset
         Spiral3D {
             x: 0,
             y: 0,

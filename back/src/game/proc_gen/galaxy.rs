@@ -1,5 +1,4 @@
-use crate::game::proc_gen::seed::{WORLD_SEED, GALAXY_SPAWN_TAG, derive_seed};
-
+use crate::game::proc_gen::seed::{GALAXY_SPAWN_TAG, WORLD_SEED, derive_seed};
 
 // TODO add extragalactic exoplanet or objects that do not belong to a planet
 // Does it even make sense? Is it possible?
@@ -8,7 +7,7 @@ use crate::game::proc_gen::seed::{WORLD_SEED, GALAXY_SPAWN_TAG, derive_seed};
 // Galaxies are spread like filaments
 
 // A) A hypothetical Cosmic Density Function using xxh3 and math
-fn check_cosmic_density(x: i32, y: i32, z: i32) -> bool {
+pub fn check_cosmic_density(x: i32, y: i32, z: i32) -> bool {
     // Convert your seed/coordinates into a float value between 0.0 and 1.0
     // Using simple trig functions as you mentioned:
     let fx = x as f64 * 0.1;
@@ -20,14 +19,13 @@ fn check_cosmic_density(x: i32, y: i32, z: i32) -> bool {
     // If the density passes a threshold, a galaxy exists here!
     // density > 0.65
 
-
     // 2. Get your deterministic seed for this cosmic slot
     let cosmic_seed = derive_seed(
         WORLD_SEED,
         GALAXY_SPAWN_TAG, /* GALAXY_SPAWN_TAG */
-        &[target_cx, target_cy, target_cz]
+        &[x as i64, y as i64, z as i64],
     );
-    let spawn_roll = ((cosmic_seed % 1000).abs() as f64) / 1000.0; // 0.0 to 1.0
+    let spawn_roll = ((cosmic_seed % 1000) as f64) / 1000.0; // 0.0 to 1.0
 
     // 3. Apply a threshold filter
     let galaxy_exists = if density < 0.4 {
@@ -65,42 +63,3 @@ fn check_cosmic_density(x: i32, y: i32, z: i32) -> bool {
 //     let normalized = (raw_density + 1.5) / 3.0;
 //     normalized.clamp(0.0, 1.0)
 // }
-
-TODO add spawn roll
-
-fn with spawn () {
-// 1. Determine local cosmic density
-let density = get_cosmic_density(target_cx, target_cy, target_cz);
-
-// 2. Get your deterministic seed for this cosmic slot
-let cosmic_seed = derive_seed(
-    proc_gen::WORLD_SEED,
-    222, /* GALAXY_SPAWN_TAG */
-    &[target_cx, target_cy, target_cz]
-);
-let spawn_roll = ((cosmic_seed % 1000).abs() as f64) / 1000.0; // 0.0 to 1.0
-
-// 3. Apply a threshold filter
-let galaxy_exists = if density < 0.4 {
-    // --- THE VOIDS ---
-    // 40% of the entire universe has zero chance of spawning anything.
-    false
-} else if density < 0.7 {
-    // --- THE FILAMENTS ---
-    // In the stringy bridges, there's a low-to-medium chance of a galaxy spawning.
-    spawn_roll < 0.08 // 8% spawn chance
-} else {
-    // --- THE NODES / CLUSTERS ---
-    // In the high-density intersection hubs, galaxies clump heavily.
-    spawn_roll < 0.45 // 45% spawn chance
-};
-
-if !galaxy_exists {
-    // Move on to the next cosmic coordinate set
-    search_attempt += 1;
-    continue;
-}
-
-// Success! A galaxy is born here.
-// Now you can derive its unique `target_galaxy_id` and proceed inward...
-}
