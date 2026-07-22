@@ -1,5 +1,5 @@
 use crate::game::proc_gen::galaxy::check_cosmic_density;
-use crate::game::proc_gen::seed::{GALAXY_TAG, WORLD_SEED, derive_seed};
+use crate::game::proc_gen::seed::{GALAXY_TAG, SYSTEM_TAG, WORLD_SEED, derive_seed};
 use crate::maths::spiral_3d::Spiral3D;
 
 fn find_starting_galaxy_location() -> (i32, i32, i32) {
@@ -13,12 +13,16 @@ fn find_starting_galaxy_location() -> (i32, i32, i32) {
     }
 }
 
-fn find_starting_star_system_location() -> (i32, i32, i32) {
+fn find_starting_star_system_location(
+    galaxy_x: i32,
+    galaxy_y: i32,
+    galaxy_z: i32,
+) -> (i32, i32, i32) {
     let mut spiral = Spiral3D::new();
 
     loop {
         let (x, y, z) = spiral.next().unwrap();
-        if check_cosmic_density(x, y, z) {
+        if check_star_system_density(x, y, z) {
             return (x, y, z);
         }
     }
@@ -32,7 +36,18 @@ pub fn find_starting_location() -> (i32, i32, i32, i32) {
         &[galaxy_x as i64, galaxy_y as i64, galaxy_z as i64],
     );
 
-    let (star_system_x, star_system_y, star_system_z) = find_starting_star_system_location();
+    let (star_system_x, star_system_y, star_system_z) =
+        find_starting_star_system_location(galaxy_x, galaxy_y, galaxy_z);
+
+    let system_seed = derive_seed(
+        GALAXY_TAG,
+        SYSTEM_TAG,
+        &[
+            star_system_x as i64,
+            star_system_y as i64,
+            star_system_z as i64,
+        ],
+    );
 
     let mut search_attempt = 0i64;
 
