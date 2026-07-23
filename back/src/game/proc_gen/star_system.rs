@@ -15,14 +15,7 @@ const STAR_SPAWN_TAG: u64 = 0x5354_4152_5F53; // "STAR_S"
 
 const GALAXY_RADIUS: f32 = 1000.0; // Scaled visual radius of galaxies
 
-/// 1. Check if a galaxy exists at a given universe (X, Y, Z) block
-pub fn should_spawn_galaxy(world_seed: u64, pos: (i64, i64, i64)) -> bool {
-    let cosmic_seed = derive_seed(world_seed, GALAXY_SPAWN_TAG, &[pos.0, pos.1, pos.2]);
-    let spawn_roll = (cosmic_seed % 1000) as f64 / 1000.0;
 
-    // Example: 5% chance of a galaxy spawning in this block of universe space
-    spawn_roll < 0.05
-}
 
 /// 2. Get the type of the galaxy from its unique galaxy seed
 pub fn get_galaxy_type(galaxy_seed: u64) -> GalaxyType {

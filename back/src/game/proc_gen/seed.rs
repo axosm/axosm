@@ -36,7 +36,7 @@ pub const PLANET_SUBDIVISION_TAG: u64 = 12;
 
 pub const GALAXY_SPAWN_TAG: u64 = 222;
 pub const GALAXY_TYPE_TAG: u64 = 223;
-const STAR_SPAWN_TAG: u64 = 224; // "STAR_S"
+pub const STAR_SPAWN_TAG: u64 = 224; // "STAR_S"
 
 // # Adding Features Later
 // Do not change hierarchy.
