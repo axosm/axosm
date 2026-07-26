@@ -1,59 +1,42 @@
-// Galaxies are spread like filaments
+use crate::game::proc_gen::seed::{GALAXY_SPAWN_TAG, derive_seed};
 
-// A) A hypothetical Cosmic Density Function using xxh3 and math
-pub fn should_spawn_galaxy(x: i32, y: i32, z: i32) -> bool {
-    // Convert your seed/coordinates into a float value between 0.0 and 1.0
-    // Using simple trig functions as you mentioned:
-    let fx = x as f64 * 0.1;
-    let fy = y as f64 * 0.1;
-    let fz = z as f64 * 0.1;
+// Pre-computed constant for maximum precision and zero division overhead
+const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
 
-    let density = (fx.sin() + fy.cos() + fz.sin()).abs() / 3.0;
+pub fn should_spawn_galaxy(world_seed: u64, galaxy_pos: (i32, i32, i32)) -> bool {
+    let density = compute_cosmic_density(galaxy_pos);
 
-    // If the density passes a threshold, a galaxy exists here!
-    // density > 0.65
-
-    // 2. Get your deterministic seed for this cosmic slot
-    let cosmic_seed = derive_seed(
-        WORLD_SEED,
-        GALAXY_SPAWN_TAG, /* GALAXY_SPAWN_TAG */
-        &[x as i64, y as i64, z as i64],
+    let galaxy_spawn_seed = derive_seed(
+        world_seed,
+        GALAXY_SPAWN_TAG,
+        &[
+            galaxy_pos.0 as i64,
+            galaxy_pos.1 as i64,
+            galaxy_pos.2 as i64,
+        ],
     );
-    let spawn_roll = ((cosmic_seed % 1000) as f64) / 1000.0; // 0.0 to 1.0
 
-    // 3. Apply a threshold filter
-    let galaxy_exists = if density < 0.4 {
-        // --- THE VOIDS ---
-        // 40% of the entire universe has zero chance of spawning anything.
-        false
-    } else if density < 0.7 {
-        // --- THE FILAMENTS ---
-        // In the stringy bridges, there's a low-to-medium chance of a galaxy spawning.
-        spawn_roll < 0.08 // 8% spawn chance
-    } else {
-        // --- THE NODES / CLUSTERS ---
-        // In the high-density intersection hubs, galaxies clump heavily.
-        spawn_roll < 0.45 // 45% spawn chance
-    };
+    let roll = (galaxy_spawn_seed as f64) * U64_TO_UNIT_F64;
 
-    galaxy_exists
+    let threshold = 0.002 + 0.5 * density.powi(3);
+
+    roll < threshold
 }
 
-// // B) Another Cosmic Density Function. Not sure what is the difference with check_cosmic_density.
-// fn get_cosmic_density(cx: i64, cy: i64, cz: i64) -> f64 {
-//     // Convert to floats and apply scaling factors to control the size of voids/clusters
-//     // Smaller scale numbers = larger, grander cosmic structures
-//     let x = (cx as f64) * 0.05;
-//     let y = (cy as f64) * 0.05;
-//     let z = (cz as f64) * 0.05;
+fn compute_cosmic_density(galaxy_pos: (i32, i32, i32)) -> f64 {
+    let x = galaxy_pos.0 as f64 * 0.08;
+    let y = galaxy_pos.1 as f64 * 0.08;
+    let z = galaxy_pos.2 as f64 * 0.08;
 
-//     // Combine overlapping frequencies to create irregular, organic shapes (filaments)
-//     let raw_density = (x.sin() * y.cos())
-//         + (y.sin() * z.cos())
-//         + (z.sin() * x.cos())
-//         + ((x * 2.3).cos() * (z * 2.3).sin() * 0.5); // Higher frequency detail
+    // Coupled primary waves (cosmic filaments)
+    let base_structure = (x.sin() * y.cos()) + (y.sin() * z.cos()) + (z.sin() * x.cos());
 
-//     // Normalize the result to a clean 0.0 to 1.0 range
-//     let normalized = (raw_density + 1.5) / 3.0;
-//     normalized.clamp(0.0, 1.0)
-// }
+    // Higher frequency octave (sub-clusters & fine void detail)
+    let detail = (x * 2.3).cos() * (z * 2.3).sin() * 0.5;
+
+    let raw_density = base_structure + detail; // Range: [-3.5 .. 3.5]
+
+    // Correctly normalize [-3.5, 3.5] -> [0.0, 1.0]
+    let normalized = (raw_density + 3.5) / 7.0;
+    normalized.clamp(0.0, 1.0)
+}
