@@ -1,3 +1,5 @@
+https://share.gemini.google/IBwvXMM9hC87
+
 use crate::game::proc_gen::seed::{PLANET_SPAWN_TAG, STAR_ATTR_TAG, STAR_SYSTEM_TAG, derive_seed};
 
 // Pre-computed constant for maximum precision floating-point conversions

@@ -1,4 +1,11 @@
 
+
+2026-07-27
+Non-Standard Construction on Gas Giant
+Gameplay Impacts of Stellar Spectral Types
+How is_in_habitable_zone Influences Tile Generation
+https://share.gemini.google/uEh98YK5wFGI
+
 2026-07-20
 Domain-Driven Approach vs gen/ or noise/ Module Approach
 https://share.gemini.google/awNNVeO7GOgW
