@@ -1,6 +1,8 @@
 pub mod galaxy;
+pub mod planet;
 pub mod seed;
 pub mod star_system;
+pub mod tile;
 pub mod universe;
 
 // The Domain-Driven Approach
