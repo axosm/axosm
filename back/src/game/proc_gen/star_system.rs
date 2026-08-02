@@ -47,36 +47,38 @@ pub struct OrbitalBody {
 #[derive(Debug, Clone)]
 pub struct StarSystem {
     pub seed: u64,
-    pub star_system_pos: (i32, i32, i32),
+    pub position: (i32, i32, i32),
     pub star: Star,
     pub bodies: Vec<OrbitalBody>,
 }
 
 impl StarSystem {
-    pub fn new(galaxy_seed: u64, star_system_pos: (i32, i32, i32)) -> Self {
+    pub fn new(galaxy_seed: u64, galaxy_type: GalaxyType, position: (i32, i32, i32)) -> Self {
         let system_seed = derive_seed(
             galaxy_seed,
             STAR_SYSTEM_TAG,
             &[
-                star_system_pos.0 as i64,
-                star_system_pos.1 as i64,
-                star_system_pos.2 as i64,
+                position.0 as i64,
+                position.1 as i64,
+                position.2 as i64,
             ],
         );
 
-        let star = Self::generate_star(system_seed);
+        let star = Self::generate_star(system_seed, galaxy_type);
         let bodies = Self::generate_orbital_bodies(system_seed, &star);
 
         Self {
             seed: system_seed,
-            star_system_pos,
+            position,
             star,
             bodies,
         }
     }
 
     /// Derives the primary star's characteristics based on real stellar initial mass functions.
-    fn generate_star(system_seed: u64) -> Star {
+    fn generate_star(system_seed: u64, galaxy_type: GalaxyType) -> Star {
+        // TODO take galaxy_type into account when generating the star
+
         let star_seed = derive_seed(system_seed, STAR_ATTR_TAG, &[]);
         let roll = (star_seed as f64) * U64_TO_UNIT_F64;
 

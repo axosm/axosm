@@ -4,7 +4,7 @@ const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
 const GALAXY_RADIUS: f32 = 1000.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GalaxyType {
+pub enum GalaxyKind {
     Spiral = 0,
     Lenticular = 1,
     Elliptical = 2,
@@ -14,28 +14,24 @@ pub enum GalaxyType {
 #[derive(Debug, Clone)]
 pub struct Galaxy {
     pub seed: u64,
-    pub g_type: GalaxyType,
-    pub galaxy_pos: (i32, i32, i32),
+    pub kind: GalaxyKind,
+    pub position: (i32, i32, i32),
 }
 
 impl Galaxy {
-    pub fn new(world_seed: u64, galaxy_pos: (i32, i32, i32)) -> Self {
+    pub fn new(world_seed: u64, position: (i32, i32, i32)) -> Self {
         let seed = derive_seed(
             world_seed,
             GALAXY_TAG,
-            &[
-                galaxy_pos.0 as i64,
-                galaxy_pos.1 as i64,
-                galaxy_pos.2 as i64,
-            ],
+            &[position.0 as i64, position.1 as i64, position.2 as i64],
         );
 
-        let g_type = Self::derive_type(seed);
+        let kind = Self::derive_type(seed);
 
         Self {
             seed,
-            g_type,
-            galaxy_pos,
+            kind,
+            position,
         }
     }
 
@@ -52,7 +48,7 @@ impl Galaxy {
     }
 
     pub fn should_spawn_star_system(&self, star_system_pos: (i32, i32, i32)) -> bool {
-        let density = compute_star_system_density(self.seed, self.g_type, star_system_pos);
+        let density = compute_star_system_density(self.seed, self.kind, star_system_pos);
 
         if density <= 0.0001 {
             return false;
@@ -74,13 +70,13 @@ impl Galaxy {
 }
 
 fn compute_star_system_density(
-    galaxy_seed: u64,
-    galaxy_type: GalaxyType,
-    star_system_pos: (i32, i32, i32),
+    seed: u64,
+    kind: GalaxyType,
+    star_system_position: (i32, i32, i32),
 ) -> f32 {
-    let nx = star_system_pos.0 as f32 / GALAXY_RADIUS;
-    let ny = star_system_pos.1 as f32 / GALAXY_RADIUS;
-    let nz = star_system_pos.2 as f32 / GALAXY_RADIUS;
+    let nx = star_system_position.0 as f32 / GALAXY_RADIUS;
+    let ny = star_system_position.1 as f32 / GALAXY_RADIUS;
+    let nz = star_system_position.2 as f32 / GALAXY_RADIUS;
 
     let r_sq = nx * nx + ny * ny + nz * nz;
 
@@ -91,7 +87,7 @@ fn compute_star_system_density(
 
     let r = r_sq.sqrt();
 
-    match galaxy_type {
+    match kind {
         GalaxyType::Spiral => {
             let theta = ny.atan2(nx);
             let bulge = (-5.0 * r).exp();
@@ -115,7 +111,7 @@ fn compute_star_system_density(
         }
         GalaxyType::Irregular => {
             // Clumpy 3D noise scaled by radial falloff
-            let noise = fast_3d_noise(galaxy_seed, nx * 3.0, ny * 3.0, nz * 3.0);
+            let noise = fast_3d_noise(seed, nx * 3.0, ny * 3.0, nz * 3.0);
             (noise * (1.0 - r_sq)).clamp(0.0, 1.0)
         }
     }

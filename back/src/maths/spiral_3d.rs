@@ -1,14 +1,20 @@
 pub struct Spiral3D {
-    x: i32,
-    y: i32,
-    z: i32,
+    start_x: i32,
+    start_y: i32,
+    start_z: i32,
+    x: i32, // Current relative X offset
+    y: i32, // Current relative Y offset
+    z: i32, // Current relative Z offset
     layer: i32,
 }
 
 impl Spiral3D {
-    pub fn new() -> Self {
-        // If we do not want to start at (0, 0, 0), we simply add an offset
+    /// Creates a new 3D spiral starting at the given target coordinates.
+    pub fn new(x: i32, y: i32, z: i32) -> Self {
         Spiral3D {
+            start_x: x,
+            start_y: y,
+            start_z: z,
             x: 0,
             y: 0,
             z: 0,
@@ -17,14 +23,26 @@ impl Spiral3D {
     }
 }
 
+impl Default for Spiral3D {
+    /// Defaults to starting at (0, 0, 0).
+    fn default() -> Self {
+        Self::new(0, 0, 0)
+    }
+}
+
 impl Iterator for Spiral3D {
     type Item = (i32, i32, i32);
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = (self.x, self.y, self.z);
+        // Offset the internal relative coordinates by the starting origin
+        let ret = (
+            self.start_x + self.x,
+            self.start_y + self.y,
+            self.start_z + self.z,
+        );
 
-        // If we are at the origin, pop out to the first layer
+        // If we are at the origin layer, pop out to the first layer
         if self.layer == 0 {
             self.layer = 1;
             self.x = 1;
@@ -63,11 +81,12 @@ impl Iterator for Spiral3D {
     }
 }
 
-// usage
+// Usage example
 // fn main() {
-//     let spiral = Spiral3D::new();
-//     // Print the first 27 coordinates (fills the 0,0,0 core + the first 26-block shell)
-//     for (x, y, z) in spiral.take(27) {
+//     // Start spiral centered at (10, 20, 30)
+//     let spiral = Spiral3D::new(10, 20, 30);
+
+//     for (x, y, z) in spiral.take(5) {
 //         println!("{} {} {}", x, y, z);
 //     }
 // }

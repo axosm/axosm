@@ -40,8 +40,6 @@ pub const GALAXY_IRREGULAR_NOISE_TAG: u64 = 224;
 pub const STAR_SPAWN_TAG: u64 = 225;
 pub const STAR_ATTR_TAG: u64 = 226;
 
-STAR_ATTR_TAG
-
 // # Adding Features Later
 // Do not change hierarchy.
 // Add new tags.

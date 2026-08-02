@@ -3,16 +3,16 @@ use crate::game::proc_gen::seed::{GALAXY_SPAWN_TAG, derive_seed};
 // Pre-computed constant for maximum precision and zero division overhead
 const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
 
-pub fn should_spawn_galaxy(world_seed: u64, galaxy_pos: (i32, i32, i32)) -> bool {
-    let density = compute_cosmic_density(galaxy_pos);
+pub fn should_spawn_galaxy(world_seed: u64, galaxy_position: (i32, i32, i32)) -> bool {
+    let density = compute_cosmic_density(galaxy_position);
 
     let galaxy_spawn_seed = derive_seed(
         world_seed,
         GALAXY_SPAWN_TAG,
         &[
-            galaxy_pos.0 as i64,
-            galaxy_pos.1 as i64,
-            galaxy_pos.2 as i64,
+            galaxy_position.0 as i64,
+            galaxy_position.1 as i64,
+            galaxy_position.2 as i64,
         ],
     );
 
@@ -23,10 +23,10 @@ pub fn should_spawn_galaxy(world_seed: u64, galaxy_pos: (i32, i32, i32)) -> bool
     roll < threshold
 }
 
-fn compute_cosmic_density(galaxy_pos: (i32, i32, i32)) -> f64 {
-    let x = galaxy_pos.0 as f64 * 0.08;
-    let y = galaxy_pos.1 as f64 * 0.08;
-    let z = galaxy_pos.2 as f64 * 0.08;
+fn compute_cosmic_density(position: (i32, i32, i32)) -> f64 {
+    let x = position.0 as f64 * 0.08;
+    let y = position.1 as f64 * 0.08;
+    let z = position.2 as f64 * 0.08;
 
     // Coupled primary waves (cosmic filaments)
     let base_structure = (x.sin() * y.cos()) + (y.sin() * z.cos()) + (z.sin() * x.cos());
