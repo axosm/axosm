@@ -1,10 +1,10 @@
-use crate::game::proc_gen::seed::{PLANET_SPAWN_TAG, derive_seed};
+use crate::game::proc_gen::seed::{PLANET_TAG, derive_seed};
 use crate::game::proc_gen::tile::{
     DynamicTileProperties, calculate_tile_properties, get_hex_neighbors,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PlanetClass {
+pub enum PlanetType {
     Terrestrial,
     GasGiant,
     IceGiant,
@@ -17,7 +17,7 @@ pub struct Planet {
     pub star_system_id: i64,
     pub seed: u64,
     pub planet_pos: (i32, i32, i32),
-    pub class: PlanetClass,
+    pub class: PlanetType,
     pub semi_major_axis_au: f32,
     pub is_in_habitable_zone: bool,
     pub subdivision: u32,
@@ -34,7 +34,7 @@ impl Planet {
     ) -> Self {
         let seed = derive_seed(
             system_seed,
-            PLANET_SPAWN_TAG,
+            PLANET_TAG,
             &[
                 planet_pos.0 as i64,
                 planet_pos.1 as i64,

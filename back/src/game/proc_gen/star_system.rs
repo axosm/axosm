@@ -37,7 +37,7 @@ pub enum BodyType {
 
 #[derive(Debug, Clone)]
 pub struct OrbitalBody {
-    pub body_index: u32,
+    pub index: u32,
     pub body_type: BodyType,
     pub semi_major_axis_au: f32, // Distance from star in AU
     pub is_in_habitable_zone: bool,
@@ -162,7 +162,7 @@ impl StarSystem {
             let is_in_habitable_zone = current_au >= hz_inner && current_au <= hz_outer;
 
             bodies.push(OrbitalBody {
-                body_index: idx,
+                index: idx,
                 body_type,
                 semi_major_axis_au: current_au,
                 is_in_habitable_zone,

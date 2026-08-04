@@ -4,7 +4,7 @@ const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
 const GALAXY_RADIUS: f32 = 1000.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GalaxyKind {
+pub enum GalaxyType {
     Spiral = 0,
     Lenticular = 1,
     Elliptical = 2,
@@ -14,7 +14,7 @@ pub enum GalaxyKind {
 #[derive(Debug, Clone)]
 pub struct Galaxy {
     pub seed: u64,
-    pub kind: GalaxyKind,
+    pub galaxy_type: GalaxyType,
     pub position: (i32, i32, i32),
 }
 
@@ -26,18 +26,18 @@ impl Galaxy {
             &[position.0 as i64, position.1 as i64, position.2 as i64],
         );
 
-        let kind = Self::derive_type(seed);
+        let galaxy_type = Self::derive_galaxy_type(seed);
 
         Self {
             seed,
-            kind,
+            galaxy_type,
             position,
         }
     }
 
-    fn derive_type(galaxy_seed: u64) -> GalaxyType {
-        let type_seed = derive_seed(galaxy_seed, GALAXY_TYPE_TAG, &[]);
-        let roll = (type_seed as f64) * U64_TO_UNIT_F64;
+    fn derive_galaxy_type(galaxy_seed: u64) -> GalaxyType {
+        let galaxy_type_seed = derive_seed(galaxy_seed, GALAXY_TYPE_TAG, &[]);
+        let roll = (galaxy_type_seed as f64) * U64_TO_UNIT_F64;
 
         match roll {
             x if x < 0.60 => GalaxyType::Spiral,
@@ -48,7 +48,7 @@ impl Galaxy {
     }
 
     pub fn should_spawn_star_system(&self, star_system_pos: (i32, i32, i32)) -> bool {
-        let density = compute_star_system_density(self.seed, self.kind, star_system_pos);
+        let density = compute_star_system_density(self.seed, self.galaxy_type, star_system_pos);
 
         if density <= 0.0001 {
             return false;
@@ -71,7 +71,7 @@ impl Galaxy {
 
 fn compute_star_system_density(
     seed: u64,
-    kind: GalaxyType,
+    galaxy_type: GalaxyType,
     star_system_position: (i32, i32, i32),
 ) -> f32 {
     let nx = star_system_position.0 as f32 / GALAXY_RADIUS;
@@ -87,7 +87,7 @@ fn compute_star_system_density(
 
     let r = r_sq.sqrt();
 
-    match kind {
+    match galaxy_type {
         GalaxyType::Spiral => {
             let theta = ny.atan2(nx);
             let bulge = (-5.0 * r).exp();

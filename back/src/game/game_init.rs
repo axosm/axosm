@@ -15,32 +15,20 @@ fn find_starting_galaxy_location() -> Galaxy {
     }
 }
 
-fn find_starting_star_system_location(galaxy: Galaxy) -> (i32, i32, i32) {
+fn find_starting_star_system_location(galaxy: Galaxy) -> StarSystem {
     let mut spiral = Spiral3D::new(0, 0, 0);
 
     loop {
         let star_system_pos = spiral.next().unwrap();
         if galaxy.should_spawn_star_system(star_system_pos) {
-            return StarSystem::new(WORLD_SEED, galaxy.kind, galaxy.position);
+            return StarSystem::new(galaxy.seed, galaxy.galaxy_type, galaxy.position);
         }
     }
 }
 
-pub fn find_starting_location() -> (i32, i32, i32, i32) {
+pub fn find_starting_location() {
     let galaxy = find_starting_galaxy_location();
     let star_system = find_starting_star_system_location(galaxy);
-
-    let star_system_seed = derive_seed(
-        GALAXY_TAG,
-        SYSTEM_TAG,
-        &[
-            star_system_pos.0 as i64,
-            star_system_pos.1 as i64,
-            star_system_pos.2 as i64,
-        ],
-    );
-
-    let star_system_pos = find_starting_star_system_location(galaxy_pos);
 
     // let mut search_attempt = 0i64;
 
