@@ -1,116 +1,101 @@
 use crate::game::proc_gen::galaxy::Galaxy;
+use crate::game::proc_gen::planet::Planet;
 use crate::game::proc_gen::seed::{GALAXY_TAG, SYSTEM_TAG, WORLD_SEED, derive_seed};
-use crate::game::proc_gen::star_system::StarSystem;
+use crate::game::proc_gen::star_system::{BodyType, OrbitalBody, StarSystem};
+use crate::game::proc_gen::tile::{DynamicTileProperties, TileType};
 use crate::game::proc_gen::universe::should_spawn_galaxy;
 use crate::maths::spiral_3d::Spiral3D;
 
-fn find_starting_galaxy_location() -> Galaxy {
-    let mut spiral = Spiral3D::new(0, 0, 0);
+#[derive(Debug, Clone)]
+pub struct StartingLocation {
+    pub galaxy: Galaxy,
+    pub star_system: StarSystem,
+    pub planet: Planet,
+    pub tile: DynamicTileProperties,
+}
 
-    loop {
-        let galaxy_pos = spiral.next().unwrap();
-        if should_spawn_galaxy(WORLD_SEED, galaxy_pos) {
-            return Galaxy::new(WORLD_SEED, galaxy_pos);
-        }
+impl StartingLocation {
+    /// Determines if a planet is suitable for a player start.
+    fn is_viable_planet(body: &OrbitalBody) -> bool {
+        // Must be a terrestrial planet in the habitable zone
+        body.body_type == BodyType::Terrestrial && body.is_in_habitable_zone
+    }
+
+    /// Determines if a specific tile is suitable as an initial spawn point.
+    fn is_viable_start_tile(tile: &DynamicTileProperties) -> bool {
+        // Player should start on hospitable land (e.g., Plains or Forest)
+        matches!(tile.tile_type, TileType::Plains | TileType::Forest)
     }
 }
 
-fn find_starting_star_system_location(galaxy: Galaxy) -> StarSystem {
-    let mut spiral = Spiral3D::new(0, 0, 0);
+pub fn find_starting_location(world_seed: u64) -> StartingLocation {
+    let mut galaxy_spiral = Spiral3D::new(0, 0, 0);
 
-    loop {
-        let star_system_pos = spiral.next().unwrap();
-        if galaxy.should_spawn_star_system(star_system_pos) {
-            return StarSystem::new(galaxy.seed, galaxy.galaxy_type, galaxy.position);
+    // 1. Iterate through Galaxy spatial coordinates
+    while let Some(galaxy_pos) = galaxy_spiral.next() {
+        if !should_spawn_galaxy(world_seed, galaxy_pos) {
+            continue;
+        }
+
+        let galaxy = Galaxy::new(world_seed, galaxy_pos);
+        let mut system_spiral = Spiral3D::new(0, 0, 0);
+
+        // Limit star system search radius to avoid infinite loops inside a sparse galaxy
+        let mut searched_systems = 0;
+        const MAX_SYSTEM_SEARCHES: u32 = 500;
+
+        // 2. Iterate through Star System coordinates within the current galaxy
+        while let Some(star_pos) = system_spiral.next() {
+            searched_systems += 1;
+            if searched_systems > MAX_SYSTEM_SEARCHES {
+                break; // Move on to the next galaxy if this one yields no valid starts
+            }
+
+            if !galaxy.should_spawn_star_system(star_pos) {
+                continue;
+            }
+
+            // Bug fix from original code: pass `star_pos` here, not `galaxy.position`
+            let star_system = StarSystem::new(galaxy.seed, galaxy.galaxy_type, star_pos);
+
+            // 3. Find a terrestrial, habitable orbital body
+            for body in &star_system.bodies {
+                if !StartingLocation::is_viable_planet(body) {
+                    continue;
+                }
+
+                // Temporary system ID for startup matching
+                let star_system_id = 0;
+                let planet = Planet::new(
+                    star_system_id,
+                    star_system.seed,
+                    star_system.position,
+                    body.index,
+                    body.is_in_habitable_zone,
+                    body.semi_major_axis_au,
+                );
+
+                // 4. Search planet tiles for a valid spawn biome
+                for face in 0..6 {
+                    for u in 0..planet.subdivision {
+                        for v in 0..planet.subdivision {
+                            let tile = planet.query_tile(face, u, v);
+
+                            if StartingLocation::is_viable_start_tile(&tile) {
+                                // Found a complete match across all hierarchy levels!
+                                return StartingLocation {
+                                    galaxy,
+                                    star_system,
+                                    planet,
+                                    tile,
+                                };
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
+
+    panic!("Failed to find a valid starting location in the generated universe!");
 }
-
-pub fn find_starting_location() {
-    let galaxy = find_starting_galaxy_location();
-    let star_system = find_starting_star_system_location(galaxy);
-
-    // let mut search_attempt = 0i64;
-
-    // // Configuration for the spiral's density
-    // let spatial_step = 10.0; // Distance between points along the path
-    // let turns_per_step = 0.5; // How fast it rotates
-
-    // loop {
-    //     // // 1. Map the search attempt to deterministic, distinct coordinates.
-    //     // // For simplicity, we step along the X axis, but a 3D spiral algorithm is ideal.
-    //     // let x = search_attempt * 100;
-    //     // let y = 0i64;
-    //     // let z = 0i64;
-
-    //     // 1. Map the search attempt to deterministic, distinct 3D coordinates.
-    //     let index = search_attempt as f64;
-
-    //     // Calculate a growing radius and an angle based on the attempt number
-    //     let radius = spatial_step * index.sqrt(); // .sqrt() keeps the point density even as it expands
-    //     let angle = index * turns_per_step;
-
-    //     // Map to 3D coordinates
-    //     let x = (radius * angle.cos()).round() as i64;
-    //     let y = (radius * angle.sin()).round() as i64;
-    //     let z = (index * spatial_step * 0.5).round() as i64; // Slow climb along Z
-
-    //     // 2. Derive the unique seed for THIS specific coordinate triplet
-    //     // Tag 100 = Galaxy Seed derivation
-    //     let galaxy_seed = derive_seed(WORLD_SEED, 100, &[x, y, z]);
-
-    //     // 3. Check if the universe allows a galaxy to exist here
-    //     if check_cosmic_density(galaxy_seed, x, y, z) {
-    //         // Found a valid galaxy! Return coords and its unique seed.
-    //         return (x, y, z, galaxy_seed);
-    //     }
-
-    //     search_attempt += 1;
-    // }
-}
-
-// pub fn find_starting_galaxy(player_id: i64) -> (i64, i64, i64, u64) {
-//     let mut search_attempt = 0i64;
-
-//     // Configuration for the spiral's density
-//     let spatial_step = 10.0; // Distance between points along the path
-//     let turns_per_step = 0.5; // How fast it rotates
-
-//     loop {
-//         // // 1. Map the search attempt to deterministic, distinct coordinates.
-//         // // For simplicity, we step along the X axis, but a 3D spiral algorithm is ideal.
-//         // let x = search_attempt * 100;
-//         // let y = 0i64;
-//         // let z = 0i64;
-
-//         // 1. Map the search attempt to deterministic, distinct 3D coordinates.
-//         let index = search_attempt as f64;
-
-//         // Calculate a growing radius and an angle based on the attempt number
-//         let radius = spatial_step * index.sqrt(); // .sqrt() keeps the point density even as it expands
-//         let angle = index * turns_per_step;
-
-//         // Map to 3D coordinates
-//         let x = (radius * angle.cos()).round() as i64;
-//         let y = (radius * angle.sin()).round() as i64;
-//         let z = (index * spatial_step * 0.5).round() as i64; // Slow climb along Z
-
-//         // 2. Derive the unique seed for THIS specific coordinate triplet
-//         // Tag 100 = Galaxy Seed derivation
-//         let galaxy_seed = derive_seed(WORLD_SEED, 100, &[x, y, z]);
-
-//         // 3. Check if the universe allows a galaxy to exist here
-//         if check_cosmic_density(galaxy_seed, x, y, z) {
-//             // Found a valid galaxy! Return coords and its unique seed.
-//             return (x, y, z, galaxy_seed);
-//         }
-
-//         search_attempt += 1;
-//     }
-// }
-
-// Might need this here (call it via repository). Thats how we get galaxy id.
-// INSERT INTO galaxies (seed, x, y, z)
-// VALUES (?1, ?2, ?3, ?4)
-// ON CONFLICT(x, y, z) DO UPDATE SET x=x -- Prevents crashes if already explored
-// RETURNING id;
