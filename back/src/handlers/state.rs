@@ -7,35 +7,30 @@ use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use std::sync::Arc;
 
+// use crate::models::GameStateDto;
+use crate::services::map::spawn;
 use crate::{
     app::AppState,
     // game::{init_new_player, reveal_fog},
-    auth::AuthPlayer,
-    game::seed::{
+    auth::middleware::AuthPlayer,
+    game::proc_gen::seed::{
         GALAXY_TAG, PLANET_SUBDIVISION_TAG, PLANET_TAG, SYSTEM_TAG, WORLD_SEED, derive_seed,
     },
     // dto::state::GameStateDto,
 };
-use crate::models::GameStateDto;
-use crate::services::map::spawn;
 
-
-
-
-
-
-
-use std::sync::Arc;
-use axum::{extract::State, http::StatusCode, Json};
-use crate::app_state::AppState;
-use crate::auth::AuthPlayer;
-use crate::models::GameStateDto;
-use crate::services::map::spawn;
+// use crate::app_state::AppState;
+// use crate::auth::AuthPlayer;
+// use crate::models::GameStateDto;
+// use crate::services::map::spawn;
+// use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::response::IntoResponse;
+// // use std::sync::Arc;
 
 pub async fn get_game_state(
     State(state): State<Arc<AppState>>,
-    auth: AuthPlayer,
-) -> Result<Json<GameStateDto>, (StatusCode, String)> {
+    auth: AuthPlayer, // Your custom extractor returning AuthPlayer(i64)
+) -> Result<impl IntoResponse, (StatusCode, String)> {
     let player_id = auth.0;
 
     let gs = spawn::load_or_initialize_player(&state.db, player_id)
@@ -44,7 +39,6 @@ pub async fn get_game_state(
 
     Ok(Json(gs))
 }
-
 
 // pub async fn get_game_state(
 //     State(state): State<Arc<AppState>>,
@@ -56,163 +50,161 @@ pub async fn get_game_state(
 //     Ok(Json(gs))
 // }
 
+// continue from here
+// https://gemini.google.com/share/f1d952395636
+// add function galacy cluster / densisty to proc gen module
 
-
-continue from here
-https://gemini.google.com/share/f1d952395636
-add function galacy cluster / densisty to proc gen module
-
-then (see last response ):
-https://gemini.google.com/app/cae28d3bd06a3e96
-or https://gemini.google.com/share/b5b85508d117
+// then (see last response ):
+// https://gemini.google.com/app/cae28d3bd06a3e96
+// or https://gemini.google.com/share/b5b85508d117
 
 // The code below is being refactored into appropriate modules
 // Use the function above instead
 //
-pub async fn load_game_state(
-    pool: &sqlx::SqlitePool,
-    player_id: i64,
-) -> anyhow::Result<GameStateDto> {
-    // 1. Fetch current status
-    let mut units = sqlx::query_as::<_, UnitRow>(
-        "SELECT * FROM units WHERE player_id = ? AND location_mode = 'planet_surface'",
-    )
-    .bind(player_id)
-    .fetch_all(pool)
-    .await?;
+// pub async fn load_game_state(
+//     pool: &sqlx::SqlitePool,
+//     player_id: i64,
+// ) -> anyhow::Result<GameStateDto> {
+//     // 1. Fetch current status
+//     let mut units = sqlx::query_as::<_, UnitRow>(
+//         "SELECT * FROM units WHERE player_id = ? AND location_mode = 'planet_surface'",
+//     )
+//     .bind(player_id)
+//     .fetch_all(pool)
+//     .await?;
 
-    let mut buildings =
-        sqlx::query_as::<_, BuildingRow>("SELECT * FROM buildings WHERE player_id = ?")
-            .bind(player_id)
-            .fetch_all(pool)
-            .await?;
+//     let mut buildings =
+//         sqlx::query_as::<_, BuildingRow>("SELECT * FROM buildings WHERE player_id = ?")
+//             .bind(player_id)
+//             .fetch_all(pool)
+//             .await?;
 
-    // 2. Initialize missing player
-    if units.is_empty() && buildings.is_empty() {
-        let mut tx = pool.begin().await?;
+//     // 2. Initialize missing player
+//     if units.is_empty() && buildings.is_empty() {
+//         let mut tx = pool.begin().await?;
 
-        // Variables to hold our discovered safe-haven coordinates
-        let mut target_galaxy_id = 0i64;
-        let (mut target_sx, mut target_sy, mut target_sz) = (0i64, 0i64, 0i64);
-        let mut target_orbit = 0i64;
-        let (mut safe_face, mut safe_u, mut safe_v) = (0u8, 0u32, 0u32);
+//         // Variables to hold our discovered safe-haven coordinates
+//         let mut target_galaxy_id = 0i64;
+//         let (mut target_sx, mut target_sy, mut target_sz) = (0i64, 0i64, 0i64);
+//         let mut target_orbit = 0i64;
+//         let (mut safe_face, mut safe_u, mut safe_v) = (0u8, 0u32, 0u32);
 
-        let mut planet_seed = 0u64;
-        let mut found_dry_land = false;
+//         let mut planet_seed = 0u64;
+//         let mut found_dry_land = false;
 
-        // Pseudo-random execution counter to shift search if collision happens
-        let mut search_attempt = 0i64;
+//         // Pseudo-random execution counter to shift search if collision happens
+//         let mut search_attempt = 0i64;
 
-        // Loop until we find a planet and tile that is NOT an ocean
-        while !found_dry_land {
-            aaaa // FIXME we do not use search_seed but we use x, y and z instead. See game::proc_gen::game_init::find_starting_galaxy()
+//         // Loop until we find a planet and tile that is NOT an ocean
+//         while !found_dry_land {
+//             aaaa // FIXME we do not use search_seed but we use x, y and z instead. See game::proc_gen::game_init::find_starting_galaxy()
 
-            // Pick a deterministic grid system location using player identity and attempt index
-            let search_seed = derive_seed(
-                proc_gen::WORLD_SEED,
-                999, /* SEARCH_TAG. If switching to random_number instead of 999, read this : https://gemini.google.com/share/3d17aadbdbc3 */
-                &[player_id, search_attempt],
-            );
+//             // Pick a deterministic grid system location using player identity and attempt index
+//             let search_seed = derive_seed(
+//                 proc_gen::WORLD_SEED,
+//                 999, /* SEARCH_TAG. If switching to random_number instead of 999, read this : https://gemini.google.com/share/3d17aadbdbc3 */
+//                 &[player_id, search_attempt],
+//             );
 
-            // Map search_seed into large space limits
-            target_galaxy_id = (search_seed % 5) as i64; // Spreads players across 5 galaxies
-            target_sx = ((search_seed >> 8) % 1000) as i64 - 500; // Grid bounds X: -500 to +500
-            target_sy = ((search_seed >> 16) % 1000) as i64 - 500;
-            target_sz = ((search_seed >> 24) % 1000) as i64 - 500;
+//             // Map search_seed into large space limits
+//             target_galaxy_id = (search_seed % 5) as i64; // Spreads players across 5 galaxies
+//             target_sx = ((search_seed >> 8) % 1000) as i64 - 500; // Grid bounds X: -500 to +500
+//             target_sy = ((search_seed >> 16) % 1000) as i64 - 500;
+//             target_sz = ((search_seed >> 24) % 1000) as i64 - 500;
 
-            // Derive seeds following your exact hierarchy chain
-            let galaxy_seed = derive_seed(
-                proc_gen::WORLD_SEED,
-                proc_gen::GALAXY_TAG,
-                &[target_galaxy_id],
-            );
-            let sys_seed = derive_seed(
-                galaxy_seed,
-                proc_gen::SYSTEM_TAG,
-                &[target_sx, target_sy, target_sz],
-            );
+//             // Derive seeds following your exact hierarchy chain
+//             let galaxy_seed = derive_seed(
+//                 proc_gen::WORLD_SEED,
+//                 proc_gen::GALAXY_TAG,
+//                 &[target_galaxy_id],
+//             );
+//             let sys_seed = derive_seed(
+//                 galaxy_seed,
+//                 proc_gen::SYSTEM_TAG,
+//                 &[target_sx, target_sy, target_sz],
+//             );
 
-            // Roll a realistic planet count for this system
-            let count_seed = derive_seed(sys_seed, 11 /* PLANET_COUNT_TAG */, &[]);
-            let max_planets = 1 + (count_seed % 10) as i64; // 1 to 10 planets
+//             // Roll a realistic planet count for this system
+//             let count_seed = derive_seed(sys_seed, 11 /* PLANET_COUNT_TAG */, &[]);
+//             let max_planets = 1 + (count_seed % 10) as i64; // 1 to 10 planets
 
-            // Target the middle orbit slot for habitable safety chances
-            target_orbit = max_planets / 2;
-            planet_seed = derive_seed(sys_seed, proc_gen::PLANET_TAG, &[target_orbit]);
+//             // Target the middle orbit slot for habitable safety chances
+//             target_orbit = max_planets / 2;
+//             planet_seed = derive_seed(sys_seed, proc_gen::PLANET_TAG, &[target_orbit]);
 
-            // Pick a random surface tile to inspect (N=0 means 20 faces, m=[10,11] means max u=10, v=11)
-            let tile_picker_seed =
-                derive_seed(planet_seed, 888 /* PICKER_TAG */, &[search_attempt]);
-            safe_face = (tile_picker_seed % 20) as u8;
-            safe_u = ((tile_picker_seed >> 8) % 10) as u32;
-            safe_v = ((tile_picker_seed >> 16) % 11) as u32;
+//             // Pick a random surface tile to inspect (N=0 means 20 faces, m=[10,11] means max u=10, v=11)
+//             let tile_picker_seed =
+//                 derive_seed(planet_seed, 888 /* PICKER_TAG */, &[search_attempt]);
+//             safe_face = (tile_picker_seed % 20) as u8;
+//             safe_u = ((tile_picker_seed >> 8) % 10) as u32;
+//             safe_v = ((tile_picker_seed >> 16) % 11) as u32;
 
-            // Run your deterministic biome check
-            let tile_seed = derive_seed(
-                planet_seed,
-                proc_gen::TILE_TAG,
-                &[safe_face as i64, safe_u as i64, safe_v as i64],
-            );
-            let biome_seed = derive_seed(tile_seed, 101 /* TILE_BIOME_TAG */, &[]);
+//             // Run your deterministic biome check
+//             let tile_seed = derive_seed(
+//                 planet_seed,
+//                 proc_gen::TILE_TAG,
+//                 &[safe_face as i64, safe_u as i64, safe_v as i64],
+//             );
+//             let biome_seed = derive_seed(tile_seed, 101 /* TILE_BIOME_TAG */, &[]);
 
-            let biome_type = biome_seed % 3; // 0 = Ocean, 1 = Desert, 2 = Continental
-            if biome_type != 0 {
-                // Land found! Break loop
-                found_dry_land = true;
-            } else {
-                search_attempt += 1; // Try again at a completely different coordinate set
-            }
-        }
+//             let biome_type = biome_seed % 3; // 0 = Ocean, 1 = Desert, 2 = Continental
+//             if biome_type != 0 {
+//                 // Land found! Break loop
+//                 found_dry_land = true;
+//             } else {
+//                 search_attempt += 1; // Try again at a completely different coordinate set
+//             }
+//         }
 
-        // 3. Perform SQLite inserts using our verified dry-land system coordinates
-        let g_id: i64 = sqlx::query_scalar(
-            "INSERT INTO galaxies (seed, x, y, z) VALUES (?, 0.0, 0.0, 0.0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-        ).bind(target_galaxy_id).fetch_one(&mut *tx).await?;
+//         // 3. Perform SQLite inserts using our verified dry-land system coordinates
+//         let g_id: i64 = sqlx::query_scalar(
+//             "INSERT INTO galaxies (seed, x, y, z) VALUES (?, 0.0, 0.0, 0.0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
+//         ).bind(target_galaxy_id).fetch_one(&mut *tx).await?;
 
-        let sys_id: i64 = sqlx::query_scalar(
-            "INSERT INTO star_systems (galaxy_id, seed, x, y, z) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-        ).bind(g_id).bind(target_galaxy_id).bind(target_sx).bind(target_sy).bind(target_sz).fetch_one(&mut *tx).await?;
+//         let sys_id: i64 = sqlx::query_scalar(
+//             "INSERT INTO star_systems (galaxy_id, seed, x, y, z) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET id=id RETURNING id"
+//         ).bind(g_id).bind(target_galaxy_id).bind(target_sx).bind(target_sy).bind(target_sz).fetch_one(&mut *tx).await?;
 
-        let planet_id: i64 = sqlx::query_scalar(
-            "INSERT INTO planets (star_system_id, seed, x, y, subdivision) VALUES (?, ?, ?, ?, 0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
-        ).bind(sys_id).bind(planet_seed as i64).bind(target_orbit as f64).bind(target_orbit as f64).fetch_one(&mut *tx).await?;
+//         let planet_id: i64 = sqlx::query_scalar(
+//             "INSERT INTO planets (star_system_id, seed, x, y, subdivision) VALUES (?, ?, ?, ?, 0) ON CONFLICT DO UPDATE SET id=id RETURNING id"
+//         ).bind(sys_id).bind(planet_seed as i64).bind(target_orbit as f64).bind(target_orbit as f64).fetch_one(&mut *tx).await?;
 
-        // 4. Spawn starter units cleanly onto the safe Goldberg surface tiles
-        sqlx::query(
-            r#"
-            INSERT INTO units (
-                unit_type, is_squad, count, hp, player_id, in_battle,
-                location_mode, planet_id, planet_face, planet_u, planet_v
-            ) VALUES ('colonist_scout', 0, 1, 100, ?, 0, 'planet_surface', ?, ?, ?, ?)
-            "#,
-        )
-        .bind(player_id)
-        .bind(planet_id)
-        .bind(safe_face as i64)
-        .bind(safe_u as i64)
-        .bind(safe_v as i64)
-        .execute(&mut *tx)
-        .await?;
+//         // 4. Spawn starter units cleanly onto the safe Goldberg surface tiles
+//         sqlx::query(
+//             r#"
+//             INSERT INTO units (
+//                 unit_type, is_squad, count, hp, player_id, in_battle,
+//                 location_mode, planet_id, planet_face, planet_u, planet_v
+//             ) VALUES ('colonist_scout', 0, 1, 100, ?, 0, 'planet_surface', ?, ?, ?, ?)
+//             "#,
+//         )
+//         .bind(player_id)
+//         .bind(planet_id)
+//         .bind(safe_face as i64)
+//         .bind(safe_u as i64)
+//         .bind(safe_v as i64)
+//         .execute(&mut *tx)
+//         .await?;
 
-        tx.commit().await?;
+//         tx.commit().await?;
 
-        // Refresh state values for DTO output
-        units = sqlx::query_as::<_, UnitRow>(
-            "SELECT * FROM units WHERE player_id = ? AND location_mode = 'planet_surface'",
-        )
-        .bind(player_id)
-        .fetch_all(pool)
-        .await?;
+//         // Refresh state values for DTO output
+//         units = sqlx::query_as::<_, UnitRow>(
+//             "SELECT * FROM units WHERE player_id = ? AND location_mode = 'planet_surface'",
+//         )
+//         .bind(player_id)
+//         .fetch_all(pool)
+//         .await?;
 
-        // TODO get buildings as well
-    }
+//         // TODO get buildings as well
+//     }
 
-    Ok(GameStateDto {
-        player_id,
-        units,
-        buildings,
-    })
-}
+//     Ok(GameStateDto {
+//         player_id,
+//         units,
+//         buildings,
+//     })
+// }
 
 // The code below does not work for new players.
 // It has no proc gen.
