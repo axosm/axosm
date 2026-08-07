@@ -47,11 +47,11 @@ impl Planet {
         let subdivision = 32;
 
         let class = if semi_major_axis_au > 5.0 {
-            PlanetClass::GasGiant
+            PlanetType::GasGiant
         } else if semi_major_axis_au > 3.0 {
-            PlanetClass::IceGiant
+            PlanetType::IceGiant
         } else {
-            PlanetClass::Terrestrial
+            PlanetType::Terrestrial
         };
 
         Self {

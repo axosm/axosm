@@ -1,7 +1,9 @@
-use crate::game::proc_gen::seed::{GALAXY_TAG, GALAXY_TYPE_TAG, STAR_SPAWN_TAG, derive_seed};
+use crate::game::proc_gen::seed::{
+    GALAXY_FAST_3D_NOISE_TAG, GALAXY_TAG, GALAXY_TYPE_TAG, STAR_SYSTEM_SPAWN_TAG, derive_seed,
+};
 
 const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
-const GALAXY_RADIUS: f32 = 1000.0;
+const GALAXY_RADIUS: f32 = 10000.0;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GalaxyType {
@@ -56,7 +58,7 @@ impl Galaxy {
 
         let star_system_seed = derive_seed(
             self.seed,
-            STAR_SPAWN_TAG,
+            STAR_SYSTEM_SPAWN_TAG,
             &[
                 star_system_pos.0 as i64,
                 star_system_pos.1 as i64,
@@ -132,7 +134,7 @@ fn fast_3d_noise(seed: u64, x: f32, y: f32, z: f32) -> f32 {
     let w = fz * fz * (3.0 - 2.0 * fz);
 
     let hash = |dx: i64, dy: i64, dz: i64| -> f32 {
-        let s = derive_seed(seed, 0x4E4F_4953_4500, &[xi + dx, yi + dy, zi + dz]);
+        let s = derive_seed(seed, GALAXY_FAST_3D_NOISE_TAG, &[xi + dx, yi + dy, zi + dz]);
         (s as f32) * (1.0 / u64::MAX as f32)
     };
 

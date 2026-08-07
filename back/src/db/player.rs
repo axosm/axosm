@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use sqlx::prelude::FromRow;
 
 #[derive(Debug, FromRow)]
 pub struct PlayerRow {

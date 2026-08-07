@@ -27,18 +27,26 @@ pub const WORLD_SEED: u64 = 42;
 // Old saves keep version 1.
 pub const GENERATION_VERSION: u64 = 1;
 
-pub const GALAXY_TAG: u64 = 1;
-pub const SYSTEM_TAG: u64 = 2;
+pub const GALAXY_TAG: u64 = 2;
+pub const GALAXY_SPAWN_TAG: u64 = 3;
+pub const GALAXY_TYPE_TAG: u64 = 4;
+pub const GALAXY_IRREGULAR_NOISE_TAG: u64 = 5;
+pub const GALAXY_FAST_3D_NOISE_TAG: u64 = 6;
+
+pub const STAR_SYSTEM_TAG: u64 = 100;
+pub const STAR_SYSTEM_SPAWN_TAG: u64 = 101;
+pub const STAR_SYSTEM_ATTR_TAG: u64 = 200;
+pub const STAR_SYSTEM_BODY_TYPE_TAG: u64 = 200;
+pub const STAR_SYSTEM_ORBIT_SPACING_TAG: u64 = 200;
+pub const STAR_SYSTEM_STAR_MASS_TAG: u64 = 200;
+pub const STAR_SYSTEM_SMBH_SPAWN_TAG: u64 = 200;
+
 pub const PLANET_TAG: u64 = 3;
 pub const TILE_TAG: u64 = 4;
 
 pub const PLANET_SUBDIVISION_TAG: u64 = 12;
 
-pub const GALAXY_SPAWN_TAG: u64 = 222;
-pub const GALAXY_TYPE_TAG: u64 = 223;
-pub const GALAXY_IRREGULAR_NOISE_TAG: u64 = 224;
-pub const STAR_SPAWN_TAG: u64 = 225;
-pub const STAR_ATTR_TAG: u64 = 226;
+pub const PLANET_SPAWN_TAG: u64 = 325;
 
 // # Adding Features Later
 // Do not change hierarchy.

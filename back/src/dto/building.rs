@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 #[derive(Debug, Serialize)]
 pub struct BuildingDto {
     pub id: i64,

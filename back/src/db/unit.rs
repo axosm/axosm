@@ -1,4 +1,4 @@
-use serde::Serialize;
+use crate::dto::unit::UnitDto;
 use sqlx::prelude::FromRow;
 
 #[derive(Debug, FromRow)]
