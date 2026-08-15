@@ -1,4 +1,4 @@
-use crate::game::proc_gen::StartingLocation;
+use crate::game::game_init::StartingLocation;
 use crate::repositories::{buildings_repo, units_repo};
 use anyhow::Result;
 use sqlx::{Sqlite, Transaction};

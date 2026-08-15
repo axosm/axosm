@@ -1,9 +1,9 @@
 use crate::game::proc_gen::{
     galaxy::GalaxyType,
     seed::{
-        PLANET_SPAWN_TAG, STAR_SYSTEM_ATTR_TAG, STAR_SYSTEM_BODY_TYPE_TAG,
-        STAR_SYSTEM_ORBIT_SPACING_TAG, STAR_SYSTEM_SMBH_SPAWN_TAG, STAR_SYSTEM_STAR_MASS_TAG,
-        STAR_SYSTEM_TAG, derive_seed,
+        PLANET_SPAWN_TAG, STAR_SYSTEM_BODY_TYPE_TAG, STAR_SYSTEM_ORBIT_SPACING_TAG,
+        STAR_SYSTEM_SMBH_SPAWN_TAG, STAR_SYSTEM_STAR_MASS_TAG, STAR_SYSTEM_TAG,
+        STAR_SYSTEM_TYPE_TAG, derive_seed,
     },
 };
 
@@ -111,9 +111,10 @@ impl StarSystem {
                     surface_temp: 0,
                 };
             }
+        }
 
         // 2. Galaxy-Specific Star & Stellar Black Hole Distributions
-        let star_seed = derive_seed(system_seed, STAR_SYSTEM_ATTR_TAG, &[]);
+        let star_seed = derive_seed(system_seed, STAR_SYSTEM_TYPE_TAG, &[]);
         let roll = (star_seed as f64) * U64_TO_UNIT_F64;
 
         let derived_type = match galaxy_type {
@@ -175,20 +176,20 @@ impl StarSystem {
             }
         };
 
-        // 3. Attribute Resolution
+        // 3. Type Resolution
+        let mass_seed = derive_seed(star_seed, STAR_SYSTEM_STAR_MASS_TAG, &[]);
+        let mass_roll = (mass_seed as f64) * U64_TO_UNIT_F64;
         match derived_type {
             StarType::StellarBlackHole => {
-                let mass_seed = derive_seed(star_seed, STAR_SYSTEM_STAR_MASS_TAG, &[]);
-                let mass_roll = (mass_seed as f64) * U64_TO_UNIT_F64;
                 let mass = (10.0 + mass_roll * 40.0) as f32; // 10 to 50 Solar Masses
 
-                Star {
+                return Star {
                     star_type: StarType::StellarBlackHole,
                     mass,
                     radius: 0.0001,
                     luminosity: 0.0,
                     surface_temp: 0,
-                }
+                };
             }
 
             StarType::Spectral(spectral_type) => {
@@ -202,8 +203,6 @@ impl StarSystem {
                     SpectralType::M => (0.08, 0.45, 2400, 3700),
                 };
 
-                let mass_seed = derive_seed(star_seed, STAR_SYSTEM_STAR_MASS_TAG, &[]);
-                let mass_roll = (mass_seed as f64) * U64_TO_UNIT_F64;
                 let mass = min_m + (max_m - min_m) * (mass_roll as f32);
 
                 let luminosity = mass.powf(3.5);
@@ -216,13 +215,13 @@ impl StarSystem {
                 let surface_temp =
                     (min_temp as f32 + (max_temp - min_temp) as f32 * mass_factor) as u32;
 
-                Star {
+                return Star {
                     star_type: StarType::Spectral(spectral_type),
                     mass,
                     radius,
                     luminosity,
                     surface_temp,
-                }
+                };
             }
 
             _ => unreachable!(),

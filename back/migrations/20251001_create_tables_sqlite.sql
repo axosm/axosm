@@ -81,6 +81,7 @@ CREATE TABLE planets (
   seed            INTEGER  NOT NULL,
   x               INTEGER     NOT NULL,
   y               INTEGER     NOT NULL,
+  z               INTEGER     NOT NULL,
   subdivision     INTEGER  NOT NULL, -- Goldberg polyhedron resolution (N)
   created_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   updated_at      TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))

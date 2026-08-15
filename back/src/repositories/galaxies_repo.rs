@@ -1,15 +1,15 @@
-use crate::models::GalaxyRow;
+use crate::db::galaxy::GalaxyRow;
 use anyhow::Result;
-use sqlx::SqlitePool;
+use sqlx::{Sqlite, Transaction};
 
 pub async fn insert_galaxy(
     tx: &mut Transaction<'_, Sqlite>,
     seed: i64,
     coords: (i64, i64, i64),
-) -> Result<(GalaxyRow)> {
+) -> Result<GalaxyRow> {
     let (x, y, z) = coords;
 
-    let id: i64 = sqlx::query_scalar(
+    let galaxy = sqlx::query_as::<_, GalaxyRow>(
         "INSERT INTO galaxies (seed, x, y, z) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET id=id RETURNING id"
     )
     .bind(seed)
@@ -19,5 +19,5 @@ pub async fn insert_galaxy(
     .fetch_one(&mut **tx)
     .await?;
 
-    Ok(id)
+    Ok(galaxy)
 }

@@ -1,4 +1,4 @@
-use crate::models::PlayerRow;
+use crate::db::player::PlayerRow;
 use anyhow::Result;
 use sqlx::SqlitePool;
 
