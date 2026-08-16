@@ -60,16 +60,19 @@ export class ApiClient {
   }
 
   private initCredentials() {
-    if (IS_LOCAL) {
-      // Local Mode: Fallback straight to an automated local UUID device key
-      this.credential = localStorage.getItem("space4x_session_key");
-      if (!this.credential) {
-        this.credential = crypto.randomUUID();
-        localStorage.setItem("space4x_session_key", this.credential);
-      }
+    // 1. Try to load an existing token or session key
+    const token = localStorage.getItem("space4x_token");
+    let sessionKey = localStorage.getItem("space4x_session_key");
+
+    if (token) {
+      this.credential = token;
     } else {
-      // Production Mode: Fetch JWT matching token key
-      this.credential = localStorage.getItem("space4x_token");
+      // 2. Fallback: Generate a session key if none exists
+      if (!sessionKey) {
+        sessionKey = crypto.randomUUID();
+        localStorage.setItem("space4x_session_key", sessionKey);
+      }
+      this.credential = sessionKey;
     }
   }
 
@@ -86,16 +89,16 @@ export class ApiClient {
     localStorage.removeItem("space4x_session_key");
   }
 
-  private headers(): HeadersInit {
-    const h: Record<string, string> = { "Content-Type": "application/json" };
+  private headers(): Record<string, string> {
+    const h: Record<string, string> = {};
 
     if (this.credential) {
-      if (IS_LOCAL) {
-        // Local mode compilation output sends custom session string header
-        h["X-Session-Key"] = this.credential;
-      } else {
-        // Production compilation output sends Bearer Authorization format
+      const isJwt = this.credential.split(".").length === 3;
+      if (isJwt) {
         h["Authorization"] = `Bearer ${this.credential}`;
+      } else {
+        // Send as session key for the custom AuthPlayer extractor
+        h["X-Session-Key"] = this.credential;
       }
     }
     return h;
@@ -108,13 +111,28 @@ export class ApiClient {
   ): Promise<T> {
     const res = await fetch(BASE + path, {
       method,
-      headers: this.headers(),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...this.headers(),
+      },
       body: body ? JSON.stringify(body) : undefined,
     });
+
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || res.statusText);
     }
+
+    // Defensive check: Ensure we actually received JSON
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const htmlText = await res.text();
+      throw new Error(
+        `Expected JSON from ${BASE + path}, but received HTML/Text. Check your BASE URL or API proxy settings.\nResponse preview: ${htmlText.slice(0, 150)}...`
+      );
+    }
+
     return res.json() as Promise<T>;
   }
 
@@ -145,7 +163,7 @@ export class ApiClient {
   }
 
   async moveUnit(unit_id: number, to_face: number, to_u: number, to_v: number) {
-    return this.request("POST", `/api/units/${unit_id}/move`, {
+    return this.request("POST", `/units/${unit_id}/move`, {
       to_face,
       to_u,
       to_v,
