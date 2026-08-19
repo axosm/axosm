@@ -1,0 +1,125 @@
+import { Renderer } from './scene/renderer';
+import { CameraController } from './scene/camera_controler';
+import { BaseView } from './space/base_view';
+import { TransitionManager } from './space/transition_manager';
+import { UniverseView } from './space/views/universe_view';
+import { GalaxyView } from './space/views/galaxy_view';
+import { SystemView } from './space/views/system_view';
+import { PlanetView } from './space/views/planet_view';
+import { api, GameState } from './api';
+
+export enum ViewMode {
+  UNIVERSE,
+  GALAXY,
+  SYSTEM,
+  PLANET
+}
+
+class App {
+  private renderer!: Renderer;
+  private cameraController!: CameraController;
+  private transitionManager!: TransitionManager;
+
+  private gameState: GameState | null = null;
+
+  // Registered view controllers
+  private views: Map<ViewMode, BaseView> = new Map();
+  private activeViewMode: ViewMode = ViewMode.SYSTEM;
+
+  constructor() {
+    // Synchronous setup: kick off the async init sequence
+    this.init();
+  }
+
+  // 1. Marked as async to fetch initial data before initializing the game
+  private async init(): Promise<void> {
+    // Fetch state from server FIRST
+    this.gameState = await api.getGameState();
+    console.log('Game state loaded:', this.gameState);
+
+    // Setup WebGL rendering and camera
+    this.renderer = new Renderer();
+    this.cameraController = new CameraController(this.renderer.camera);
+    
+    // Instantiate view layers
+    this.views = new Map<ViewMode, BaseView>([
+      [ViewMode.UNIVERSE, new UniverseView()],
+      [ViewMode.GALAXY, new GalaxyView()],
+      [ViewMode.SYSTEM, new SystemView()],
+      [ViewMode.PLANET, new PlanetView()]
+    ]);
+
+    this.transitionManager = new TransitionManager(this.cameraController);
+
+    // Register all view root containers in the main scene graph
+    this.views.forEach((view) => {
+      this.renderer.scene.add(view.container);
+    });
+
+    this.bindEvents();
+
+    // Pass fetched game state context to starting view
+    const initialView = this.views.get(this.activeViewMode)!;
+    initialView.onEnter(this.gameState);
+
+    // Start the frame loop
+    this.startLoop();
+  }
+
+  // Handle smooth transitions between navigation scales
+  public transitionTo(targetMode: ViewMode, contextData?: any): void {
+    if (targetMode === this.activeViewMode) return;
+
+    const currentView = this.views.get(this.activeViewMode)!;
+    const targetView = this.views.get(targetMode)!;
+
+    this.transitionManager.startTransition(
+      currentView,
+      targetView,
+      contextData,
+      () => {
+        currentView.onLeave();
+        targetView.onEnter(contextData);
+        this.activeViewMode = targetMode;
+      }
+    );
+  }
+
+  private startLoop(): void {
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      this.cameraController.update(delta);
+      this.transitionManager.update(delta);
+      
+      const currentView = this.views.get(this.activeViewMode);
+      if (currentView) {
+        currentView.update(delta);
+      }
+
+      this.renderer.render(this.cameraController.camera);
+
+      requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  private bindEvents(): void {
+    window.addEventListener('resize', () => this.renderer.onResize());
+    
+    this.cameraController.onZoomThresholdExceeded((direction) => {
+      if (direction === 'out' && this.activeViewMode === ViewMode.PLANET) {
+        this.transitionTo(ViewMode.SYSTEM);
+      } else if (direction === 'in' && this.activeViewMode === ViewMode.SYSTEM) {
+        this.transitionTo(ViewMode.PLANET);
+      }
+    });
+  }
+}
+
+// Instantiates and auto-runs init() upon file load
+new App();

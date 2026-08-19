@@ -1,17 +1,21 @@
 import { api, GameState } from "./api/api";
 import { GameRenderer } from "./renderer/GameRenderer";
 
-class Game {
+class App {
   private renderer!: GameRenderer;
+  private cameraController: CameraController;
 
   private gameState: GameState | null = null;
 
   private pendingTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private battleSSE: EventSource | null = null;
 
-  constructor() {}
+  constructor() {
 
-  async boot() {
+    this.init();
+  }
+
+  private async init(): Promise<void> {
     this.gameState = await api.getGameState();
 
     console.log(this.gameState);
@@ -19,11 +23,11 @@ class Game {
     const container = document.getElementById("game-canvas")!;
     this.renderer = new GameRenderer(container);
   }
+
+
 }
 
-// ── Bootstrap ──────────────────────────────────────────────────
-const game = new Game();
-game.boot();
+new App();
 
 // // Called when server confirms a move, returns arrival_time
 // private scheduleMovepoll(unit: Unit, arrivalTime: string) {

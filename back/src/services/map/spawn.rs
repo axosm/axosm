@@ -15,6 +15,8 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
     if units.is_empty() && buildings.is_empty() {
         let spawn = game_init::find_starting_location(WORLD_SEED);
 
+        // println!("{:#?}", spawn);
+
         let mut tx = pool.begin().await?;
 
         player_state_repo::insert_initial_player_state(&mut tx, player_id, &spawn).await?;

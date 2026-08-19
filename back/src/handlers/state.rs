@@ -23,7 +23,7 @@ pub async fn get_game_state(
     auth: AuthPlayer, // Your custom extractor returning AuthPlayer(i64)
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let player_id = auth.0;
-
+    
     let gs = spawn::load_or_initialize_player(&state.db, player_id)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

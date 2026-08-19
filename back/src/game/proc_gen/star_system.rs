@@ -7,6 +7,12 @@ use crate::game::proc_gen::{
     },
 };
 
+// TODO
+// - Flat disks: Stars and planets form from spinning clouds of gas and dust. 
+// Spinning makes the cloud turn into a flat disk, so most planets end up in the same flat plane.
+// - Tilts and exceptions: Some small worlds, like dwarf planets or captured comets, have heavily tilted or high-inclination orbits.
+// - Rogue planets: Some planets float alone in space with no star or system at all.
+
 const U64_TO_UNIT_F64: f64 = 1.0 / (u64::MAX as f64);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

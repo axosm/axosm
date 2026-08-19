@@ -28,7 +28,7 @@ pub async fn insert_initial_player_state(
             .await?
             .last_insert_rowid(),
     };
-
+println!("weqiwueqi 1");
     // 2. Get or Create Star System
     let star_system_id = match sqlx::query_scalar::<_, i64>(
         "SELECT id FROM star_systems WHERE galaxy_id = ? AND x = ? AND y = ? AND z = ?",
@@ -54,30 +54,34 @@ pub async fn insert_initial_player_state(
         .last_insert_rowid(),
     };
 
+println!("weqiwueqi 2");
     // 3. Get or Create Planet
     let planet_id = match sqlx::query_scalar::<_, i64>(
-        "SELECT id FROM planets WHERE star_system_id = ? AND x = ? AND y = ?",
+        "SELECT id FROM planets WHERE star_system_id = ? AND x = ? AND y = ? AND z = ?",
     )
     .bind(star_system_id)
     .bind(spawn.planet.planet_pos.0)
     .bind(spawn.planet.planet_pos.1)
+    .bind(spawn.planet.planet_pos.2)
     .fetch_optional(&mut **tx)
     .await?
     {
         Some(id) => id,
         None => sqlx::query(
-            "INSERT INTO planets (star_system_id, seed, x, y, subdivision) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO planets (star_system_id, seed, x, y, z, subdivision) VALUES (?, ?, ?, ?, ?, ?)",
         )
         .bind(star_system_id)
         .bind(spawn.planet.seed as i64)
         .bind(spawn.planet.planet_pos.0)
         .bind(spawn.planet.planet_pos.1)
+        .bind(spawn.planet.planet_pos.2)
         .bind(spawn.planet.subdivision as i32)
         .execute(&mut **tx)
         .await?
         .last_insert_rowid(),
     };
 
+println!("weqiwueqi 3");
     // 4. Claim Tile for Player
     let tile_id = sqlx::query(
         "INSERT INTO planet_tiles (planet_id, face, u, v, tile_type, yield_quality, rare_deposit, owner_player_id)
@@ -96,6 +100,7 @@ pub async fn insert_initial_player_state(
     .await?
     .last_insert_rowid();
 
+println!("weqiwueqi 4");
     // 5. Spawn Initial Headquarters Building
     buildings_repo::create_building(tx, player_id, "colony_hub", tile_id, 1000, 1000).await?;
 
