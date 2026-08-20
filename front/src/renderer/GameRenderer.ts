@@ -2,8 +2,20 @@ import * as THREE from 'three';
 
 export class GameRenderer {
 
+  camera!: THREE.PerspectiveCamera;
+
   constructor(container: HTMLElement) {
 
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000010);
+
+    this.camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000,
+    );
+    this.camera.position.z = 5;
   }
 }
 
@@ -16,7 +28,7 @@ export class GameRenderer {
 // const scene = new THREE.Scene();
 // scene.background = new THREE.Color(0x000010);
 
-// // Camera
+// Camera
 // const camera = new THREE.PerspectiveCamera(
 //   75,
 //   window.innerWidth / window.innerHeight,
