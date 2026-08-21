@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { CameraController } from '../scene/camera_controler';
-import { BaseView } from './base_view';
+import { BaseView } from './views/BaseView';
+import { CameraController } from './CameraController';
 
 export class TransitionManager {
   private cameraController: CameraController;

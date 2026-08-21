@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BaseView } from '../base_view';
+import { BaseView } from './BaseView';
 
 export interface PlanetData {
   id: string;

@@ -28,6 +28,7 @@ class App {
   private battleSSE: EventSource | null = null;
 
   private views: Map<ViewMode, BaseView> = new Map();
+  private activeViewMode: ViewMode = ViewMode.PLANET;
   
   constructor() {
 
@@ -67,6 +68,7 @@ class App {
     this.transitionManager = new TransitionManager(this.cameraController);
 
     // Register all view root containers in the main scene graph
+    // TODO adding all views might not be a good idea
     this.views.forEach((view) => {
       this.renderer.scene.add(view.container);
     });
@@ -107,7 +109,9 @@ class App {
       const delta = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
 
-      this.cameraController.update(delta);
+      // should we pass delta?
+      // this.cameraController.update(delta);
+      this.cameraController.update();
       this.transitionManager.update(delta);
       
       const currentView = this.views.get(this.activeViewMode);
@@ -115,7 +119,7 @@ class App {
         currentView.update(delta);
       }
 
-      this.renderer.render(this.cameraController.camera);
+      this.renderer.render();
 
       requestAnimationFrame(animate);
     };
@@ -126,13 +130,14 @@ class App {
   private bindEvents(): void {
     window.addEventListener('resize', () => this.renderer.onResize());
     
-    this.cameraController.onZoomThresholdExceeded((direction) => {
-      if (direction === 'out' && this.activeViewMode === ViewMode.PLANET) {
-        this.transitionTo(ViewMode.SYSTEM);
-      } else if (direction === 'in' && this.activeViewMode === ViewMode.SYSTEM) {
-        this.transitionTo(ViewMode.PLANET);
-      }
-    });
+    // Only planet view atm
+    // this.cameraController.onZoomThresholdExceeded((direction) => {
+    //   if (direction === 'out' && this.activeViewMode === ViewMode.PLANET) {
+    //     this.transitionTo(ViewMode.SYSTEM);
+    //   } else if (direction === 'in' && this.activeViewMode === ViewMode.SYSTEM) {
+    //     this.transitionTo(ViewMode.PLANET);
+    //   }
+    // });
   }
 
 

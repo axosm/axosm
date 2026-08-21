@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 
 export class GameRenderer {
-
-  camera!: THREE.PerspectiveCamera;
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer; // 1. Declare property
+  scene: THREE.Scene;
 
   constructor(container: HTMLElement) {
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x000010);
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x000010);
 
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -16,8 +16,32 @@ export class GameRenderer {
       1000,
     );
     this.camera.position.z = 5;
+
+    // 2. Initialize renderer and attach to DOM
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(this.renderer.domElement);
+  }
+
+  onResize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  render() {
+    
   }
 }
+
+
+// // Resize
+// window.addEventListener("resize", () => {
+//   camera.aspect = window.innerWidth / window.innerHeight;
+//   camera.updateProjectionMatrix();
+//   renderer.setSize(window.innerWidth, window.innerHeight);
+// });
 
 
 // // aaaa https://claude.ai/share/34acb4d5-73a6-482c-b505-0049de5d6e26
