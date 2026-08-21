@@ -1,40 +1,50 @@
+// renderer/GameRenderer.ts
 import * as THREE from 'three';
 
 export class GameRenderer {
   camera: THREE.PerspectiveCamera;
-  renderer: THREE.WebGLRenderer; // 1. Declare property
+  renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
 
   constructor(container: HTMLElement) {
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x000010);
+    this.scene.background = new THREE.Color(0x020208);
 
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      60,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000,
+      1000
     );
-    this.camera.position.z = 5;
+    this.camera.position.set(0, 0, 12);
 
-    // 2. Initialize renderer and attach to DOM
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(this.renderer.domElement);
+
+    this.setupLighting();
   }
 
-  onResize() {
+  private setupLighting(): void {
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    sun.position.set(10, 20, 15);
+
+    this.scene.add(ambient);
+    this.scene.add(sun);
+  }
+
+  onResize(): void {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  render() {
-    
+  render(): void {
+    this.renderer.render(this.scene, this.camera);
   }
 }
-
 
 // // Resize
 // window.addEventListener("resize", () => {

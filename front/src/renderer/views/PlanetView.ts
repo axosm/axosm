@@ -1,115 +1,85 @@
+// renderer/views/PlanetView.ts
 import * as THREE from 'three';
 import { BaseView } from './BaseView';
-
-export interface PlanetData {
-  id: string;
-  name: string;
-  radius: number;
-  buildings: Map<string, { type: string; level: number; tileIndex: number }>;
-  units?: any[];
-}
+import { GameState, Unit } from '../../api/api';
+import { getTileCenter } from '../math/GoldbergUtils';
 
 export class PlanetView extends BaseView {
   private planetMesh!: THREE.Mesh;
-  private atmosphereMesh!: THREE.Mesh;
-  private buildingGroup: THREE.Group = new THREE.Group();
-  private gridGroup: THREE.Group = new THREE.Group();
-
-  private currentPlanetData: PlanetData | null = null;
-  private hoveredTileIndex: number | null = null;
+  private unitsGroup = new THREE.Group();
+  private planetRadius = 5;
+  private subdivision = 8; // Adjust based on your Goldberg spec
 
   constructor() {
-    super(); // Initializes this.container (THREE.Group)
-    this.setupBaseMeshes();
+    super();
+    this.container.add(this.unitsGroup);
+    this.createPlaceholderPlanet();
   }
 
-  private setupBaseMeshes(): void {
-    // 1. Root group for all surface objects
-    this.container.add(this.buildingGroup);
-    this.container.add(this.gridGroup);
-
-    // 2. Base planetary surface geometry & material
-    const geometry = new THREE.SphereGeometry(100, 64, 64);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x2b558c,
-      roughness: 0.8,
+  private createPlaceholderPlanet() {
+    // Basic planet sphere until tile rendering logic is wired up
+    const geom = new THREE.IcosahedronGeometry(this.planetRadius, 4);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x224488,
+      wireframe: true,
     });
-    
-    this.planetMesh = new THREE.Mesh(geometry, material);
+    this.planetMesh = new THREE.Mesh(geom, mat);
     this.container.add(this.planetMesh);
-
-    // 3. Atmosphere layer shader/mesh
-    const atmosGeometry = new THREE.SphereGeometry(102, 64, 64);
-    const atmosMaterial = new THREE.MeshBasicMaterial({
-      color: 0x418bd4,
-      transparent: true,
-      opacity: 0.25,
-      side: THREE.BackSide,
-    });
-    this.atmosphereMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
-    this.container.add(this.atmosphereMesh);
   }
 
-  // --- View Lifecycle Hooks ---
+  public onEnter(data: GameState): void {
+    if (!data) return;
+    this.renderUnits(data.units);
+  }
 
-  public override onEnter(planetData?: PlanetData): void {
-    this.container.visible = true;
-
-    if (planetData) {
-      this.currentPlanetData = planetData;
-      this.loadPlanetSurface(planetData);
+  public renderUnits(units: Unit[]): void {
+    // Clear previous units
+    while (this.unitsGroup.children.length > 0) {
+      this.unitsGroup.remove(this.unitsGroup.children[0]);
     }
-  }
 
-  public override onLeave(): void {
-    this.container.visible = false;
-    this.clearSurface();
-  }
+    units.forEach((unit) => {
+      // Filter units deployed on a planet surface
+      if (
+        unit.location_mode === 'planet_surface' &&
+        unit.planet_face !== null &&
+        unit.planet_u !== null &&
+        unit.planet_v !== null
+      ) {
+        const position = getTileCenter(
+          unit.planet_face,
+          unit.planet_u,
+          unit.planet_v,
+          this.subdivision,
+          this.planetRadius
+        );
 
-  // --- Surface & Building Logic ---
+        const unitMesh = this.createUnitMarker(unit);
+        unitMesh.position.copy(position);
 
-  private loadPlanetSurface(data: PlanetData): void {
-    this.clearSurface();
+        // Align unit upward relative to the spherical normal
+        const normal = position.clone().normalize();
+        unitMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
 
-    // Generate/render buildable surface grid
-    this.renderGridOverlay();
-
-    // Populate existing buildings from data
-    data.buildings.forEach((building) => {
-      this.spawnBuildingMesh(building.type, building.tileIndex);
+        this.unitsGroup.add(unitMesh);
+      }
     });
   }
 
-  private renderGridOverlay(): void {
-    // Generate hex or quad grid overlay over planet surface for tile selection
+  private createUnitMarker(unit: Unit): THREE.Mesh {
+    // Simple marker representing a unit (e.g., Civ-style pawn)
+    const geometry = new THREE.CylinderGeometry(0.05, 0.15, 0.4, 8);
+    const material = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    // Offset origin so base of marker sits flush on the terrain surface
+    geometry.translate(0, 0.2, 0);
+    return mesh;
   }
 
-  private spawnBuildingMesh(buildingType: string, tileIndex: number): void {
-    // Place 3D building model onto calculated tile coordinates
+  public update(delta: number): void {
+    // Handle planet rotation or unit animations here
   }
 
-  private clearSurface(): void {
-    // Clear building/grid meshes when switching planets or zooming out
-    while (this.buildingGroup.children.length > 0) {
-      const child = this.buildingGroup.children[0];
-      this.buildingGroup.remove(child);
-    }
-  }
-
-  // --- Raycasting & Interactivity ---
-
-  public onPointerMove(raycaster: THREE.Raycaster): void {
-    // Highlight hovered tile/hex for building placement or inspection
-    const intersects = raycaster.intersectObject(this.planetMesh);
-    if (intersects.length > 0) {
-      // Calculate tile ID from hit point
-    }
-  }
-
-  public override update(delta: number): void {
-    // Rotate clouds/atmosphere or animate surface units
-    if (this.atmosphereMesh) {
-      this.atmosphereMesh.rotation.y += delta * 0.02;
-    }
-  }
+  public onLeave(): void {}
 }

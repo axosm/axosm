@@ -50,7 +50,9 @@ export interface InitResponse {
 // ── API client ────────────────────────────────────────────────
 
 const BASE = "/api";
-const IS_LOCAL = import.meta.env.VITE_GAME_MODE === "local";
+// FIXME
+// const IS_LOCAL = import.meta.env.VITE_GAME_MODE === "local";
+const IS_LOCAL = true;
 
 export class ApiClient {
   private credential: string | null = null;
