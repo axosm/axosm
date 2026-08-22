@@ -16,6 +16,7 @@ export class CameraController {
 
   constructor(camera: THREE.PerspectiveCamera) {
     this.camera = camera;
+    this.updateCamera();
     // this.camera = new THREE.PerspectiveCamera(
     //   fov,
     //   canvas.clientWidth / canvas.clientHeight,

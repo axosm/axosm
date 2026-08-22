@@ -6,29 +6,31 @@ export class GameRenderer {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
 
-  constructor(container: HTMLElement) {
+constructor(container: HTMLElement) {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x020208);
 
-    this.camera = new THREE.PerspectiveCamera(
-      60,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    this.camera.position.set(0, 0, 12);
+    // Get width and height from container bounds instead of window directly
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
+
+    this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+    this.camera.position.set(0, 0, 15);
+    this.camera.lookAt(0, 0, 0);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Append WebGL DOM canvas element into container
     container.appendChild(this.renderer.domElement);
 
     this.setupLighting();
   }
 
   private setupLighting(): void {
-    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-    const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
     sun.position.set(10, 20, 15);
 
     this.scene.add(ambient);
@@ -36,9 +38,11 @@ export class GameRenderer {
   }
 
   onResize(): void {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(width, height);
   }
 
   render(): void {

@@ -33,38 +33,39 @@ export class PlanetView extends BaseView {
   }
 
   public renderUnits(units: Unit[]): void {
-    // Clear previous units
-    while (this.unitsGroup.children.length > 0) {
-      this.unitsGroup.remove(this.unitsGroup.children[0]);
-    }
-
-    units.forEach((unit) => {
-      // Filter units deployed on a planet surface
-      if (
-        unit.location_mode === 'planet_surface' &&
-        unit.planet_face !== null &&
-        unit.planet_u !== null &&
-        unit.planet_v !== null
-      ) {
-        const position = getTileCenter(
-          unit.planet_face,
-          unit.planet_u,
-          unit.planet_v,
-          this.subdivision,
-          this.planetRadius
-        );
-
-        const unitMesh = this.createUnitMarker(unit);
-        unitMesh.position.copy(position);
-
-        // Align unit upward relative to the spherical normal
-        const normal = position.clone().normalize();
-        unitMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-
-        this.unitsGroup.add(unitMesh);
-      }
-    });
+  while (this.unitsGroup.children.length > 0) {
+    this.unitsGroup.remove(this.unitsGroup.children[0]);
   }
+
+  if (!units) return;
+
+  units.forEach((unit) => {
+    if (
+      unit.location_mode === 'planet_surface' &&
+      unit.planet_face !== null &&
+      unit.planet_face >= 0 &&
+      unit.planet_face < 20 &&
+      unit.planet_u !== null &&
+      unit.planet_v !== null
+    ) {
+      const position = getTileCenter(
+        unit.planet_face,
+        unit.planet_u,
+        unit.planet_v,
+        this.subdivision,
+        this.planetRadius
+      );
+
+      const unitMesh = this.createUnitMarker(unit);
+      unitMesh.position.copy(position);
+
+      const normal = position.clone().normalize();
+      unitMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+
+      this.unitsGroup.add(unitMesh);
+    }
+  });
+}
 
   private createUnitMarker(unit: Unit): THREE.Mesh {
     // Simple marker representing a unit (e.g., Civ-style pawn)

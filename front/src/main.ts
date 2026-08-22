@@ -18,7 +18,7 @@ export enum ViewMode {
 
 
 class App {
-  private renderer!: GameRenderer;
+  private gameRenderer!: GameRenderer;
   private cameraController!: CameraController;
   private transitionManager!: TransitionManager;
 
@@ -54,8 +54,8 @@ class App {
     // Setup WebGL rendering and camera
 
     const container = document.getElementById("game-canvas")!;
-    this.renderer = new GameRenderer(container);
-    this.cameraController = new CameraController(this.renderer.camera);
+    this.gameRenderer = new GameRenderer(container);
+    this.cameraController = new CameraController(this.gameRenderer.camera);
     
     // Instantiate view layers
     this.views = new Map<ViewMode, BaseView>([
@@ -69,8 +69,9 @@ class App {
 
     // Register all view root containers in the main scene graph
     // TODO adding all views might not be a good idea
-    this.views.forEach((view) => {
-      this.renderer.scene.add(view.container);
+    this.views.forEach((view, mode) => {
+      view.container.visible = (mode === this.activeViewMode);
+      this.gameRenderer.scene.add(view.container);
     });
 
     this.bindEvents();
@@ -119,7 +120,7 @@ class App {
         currentView.update(delta);
       }
 
-      this.renderer.render();
+      this.gameRenderer.render();
 
       requestAnimationFrame(animate);
     };
@@ -128,7 +129,7 @@ class App {
   }
 
   private bindEvents(): void {
-    window.addEventListener('resize', () => this.renderer.onResize());
+    window.addEventListener('resize', () => this.gameRenderer.onResize());
     
     // Only planet view atm
     // this.cameraController.onZoomThresholdExceeded((direction) => {
