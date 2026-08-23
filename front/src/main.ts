@@ -55,8 +55,11 @@ class App {
 
     const container = document.getElementById("game-canvas")!;
     this.gameRenderer = new GameRenderer(container);
-    this.cameraController = new CameraController(this.gameRenderer.camera);
-    
+    this.cameraController = new CameraController(
+      this.gameRenderer.camera,
+      this.gameRenderer.renderer.domElement
+    );
+
     // Instantiate view layers
     this.views = new Map<ViewMode, BaseView>([
       [ViewMode.UNIVERSE, new UniverseView()],
@@ -83,7 +86,7 @@ class App {
     // Start the frame loop
     this.startLoop();
   }
-
+ 
   // Handle smooth transitions between navigation scales
   public transitionTo(targetMode: ViewMode, contextData?: any): void {
     if (targetMode === this.activeViewMode) return;
@@ -99,6 +102,8 @@ class App {
         currentView.onLeave();
         targetView.onEnter(contextData);
         this.activeViewMode = targetMode;
+        this.cameraController.syncFromCurrentPosition();
+ 
       }
     );
   }
