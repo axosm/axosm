@@ -18,12 +18,15 @@ constructor(container: HTMLElement) {
     this.camera.position.set(0, 0, 15);
     this.camera.lookAt(0, 0, 0);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: container as HTMLCanvasElement,
+      antialias: true,
+    });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // Append WebGL DOM canvas element into container
-    container.appendChild(this.renderer.domElement);
+    // container.appendChild(this.renderer.domElement);
 
     this.setupLighting();
   }
