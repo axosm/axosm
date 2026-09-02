@@ -1,81 +1,81 @@
-/**
- * Simple orbit camera controller.
- * (Using a manual implementation to avoid importing OrbitControls
- * which requires a separate import path in some Three.js versions.)
- */
-
+// renderer/CameraController.ts
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class CameraController {
-  camera:   THREE.PerspectiveCamera;
-  target    = new THREE.Vector3();
-  private spherical  = new THREE.Spherical(15, Math.PI / 4, 0);
-  private isDragging = false;
-  private lastMouse  = { x: 0, y: 0 };
-  private canvas:    HTMLElement;
+  public camera: THREE.PerspectiveCamera;
+  public controls: OrbitControls;
 
-constructor(camera: THREE.PerspectiveCamera, canvas: HTMLElement) {
+  constructor(camera: THREE.PerspectiveCamera, canvas: HTMLElement) {
     this.camera = camera;
-    this.canvas = canvas;
-    // this.camera = new THREE.PerspectiveCamera(
-    //   fov,
-    //   canvas.clientWidth / canvas.clientHeight,
-    //   0.1,
-    //   10_000,
-    // );
-    this.updateCamera();
-    this.bindEvents();
+    this.controls = new OrbitControls(this.camera, canvas);
+
+    this.configureControls();
   }
 
+  private configureControls(): void {
+    // Force panning parallel to ground plane (Humankind style)
+    this.controls.screenSpacePanning = false;
 
-  public setTarget(newTarget: THREE.Vector3, newRadius?: number) {
-    this.target.copy(newTarget);
-    if (newRadius !== undefined) {
-      this.spherical.radius = newRadius;
+    // Enable smooth physics momentum / inertia
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 0.08;
+
+    // Panning & Rotation speeds
+    this.controls.rotateSpeed = 0.8;
+    this.controls.panSpeed = 1.0;
+    this.controls.zoomSpeed = 1.2;
+
+    // Distance bounds (zoom in / zoom out)
+    this.controls.minDistance = 1.5;
+    this.controls.maxDistance = 15.0;
+
+    // Tilt limits: Keep the camera angled like Humankind (~30° to ~75°)
+    this.controls.minPolarAngle = Math.PI / 6;   // ~30 degrees
+    this.controls.maxPolarAngle = Math.PI / 2.3; // ~78 degrees
+
+    // Humankind Mouse Bindings: Left-click Pan, Right-click Rotate, Scroll Zoom
+    this.controls.mouseButtons = {
+      LEFT: THREE.MOUSE.PAN,
+      MIDDLE: THREE.MOUSE.DOLLY,
+      RIGHT: THREE.MOUSE.ROTATE,
+    };
+
+    // Keyboard support: WASD panning via OrbitControls keys
+    this.controls.listenToKeyEvents(window);
+    this.controls.keyPanSpeed = 15.0;
+  }
+
+  /**
+   * Centers and focuses the camera target onto a specific 3D tile/unit
+   */
+  public setTarget(newTarget: THREE.Vector3, distance?: number): void {
+    this.controls.target.copy(newTarget);
+
+    if (distance !== undefined) {
+      const offset = new THREE.Vector3()
+        .subVectors(this.camera.position, this.controls.target)
+        .normalize()
+        .multiplyScalar(distance);
+
+      this.camera.position.copy(this.controls.target).add(offset);
     }
-    this.updateCamera();
-  }
-  
-  private updateCamera() {
-    this.camera.position.setFromSpherical(this.spherical).add(this.target);
-    this.camera.lookAt(this.target);
+
+    this.controls.update();
   }
 
-  private bindEvents() {
-    this.canvas.addEventListener('mousedown', e => {
-      this.isDragging = true;
-      this.lastMouse = { x: e.clientX, y: e.clientY };
-    });
-    window.addEventListener('mouseup', () => { this.isDragging = false; });
-    window.addEventListener('mousemove', e => {
-      if (!this.isDragging) return;
-      const dx = e.clientX - this.lastMouse.x;
-      const dy = e.clientY - this.lastMouse.y;
-      this.lastMouse = { x: e.clientX, y: e.clientY };
-      this.spherical.theta -= dx * 0.005;
-      this.spherical.phi   -= dy * 0.005;
-      this.spherical.phi    = Math.max(0.1, Math.min(Math.PI - 0.1, this.spherical.phi));
-      this.updateCamera();
-    });
-    this.canvas.addEventListener('wheel', e => {
-      this.spherical.radius *= 1 + e.deltaY * 0.001;
-      this.spherical.radius  = Math.max(2, Math.min(500, this.spherical.radius));
-      this.updateCamera();
-      e.preventDefault();
-    }, { passive: false });
+  /**
+   * Re-synchronizes control target after smooth camera transitions
+   */
+  public syncFromCurrentPosition(): void {
+    this.controls.update();
   }
 
-  setRadius(r: number) {
-    this.spherical.radius = r;
-    this.updateCamera();
+  /**
+   * Called every frame in startLoop()
+   */
+  public update(delta: number = 0.016): void {
+    // Required every frame when enableDamping is true
+    this.controls.update();
   }
-
-    // see Step 3 — needed to keep transitions and orbiting in sync
-  public syncFromCurrentPosition(newTarget?: THREE.Vector3) {
-    if (newTarget) this.target.copy(newTarget);
-    const offset = this.camera.position.clone().sub(this.target);
-    this.spherical.setFromVector3(offset);
-  }
-
-  update() { this.updateCamera(); }
 }

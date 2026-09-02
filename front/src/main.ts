@@ -115,9 +115,8 @@ class App {
       const delta = (currentTime - lastTime) / 1000;
       lastTime = currentTime;
 
-      // should we pass delta?
-      // this.cameraController.update(delta);
-      this.cameraController.update();
+      // Pass frame delta for smooth WASD / Arrow key panning
+      this.cameraController.update(delta);
       this.transitionManager.update(delta);
       
       const currentView = this.views.get(this.activeViewMode);
@@ -126,7 +125,6 @@ class App {
       }
 
       this.gameRenderer.render();
-
       requestAnimationFrame(animate);
     };
 

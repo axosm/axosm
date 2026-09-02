@@ -9,11 +9,12 @@ export class PlanetView extends BaseView {
   private unitsGroup = new THREE.Group();
   private tileGroup = new THREE.Group();
   private planetRadius = 5;
-  private subdivision = 16; // Adjusted to accommodate u=0, v=13
+  private subdivision = 16;
   private cameraController: CameraController;
 
   constructor(cameraController: CameraController) {
-    super();this.cameraController = cameraController;
+    super();
+    this.cameraController = cameraController;
     this.container.add(this.tileGroup);
     this.container.add(this.unitsGroup);
   }
@@ -21,7 +22,6 @@ export class PlanetView extends BaseView {
   public onEnter(data: GameState): void {
     if (!data || !Array.isArray(data.units) || data.units.length === 0) return;
 
-    // Focus on the first unit's tile
     const primaryUnit = data.units[0];
     if (
       primaryUnit.location_mode === 'planet_surface' &&
@@ -35,9 +35,9 @@ export class PlanetView extends BaseView {
         primaryUnit.planet_v
       );
 
-      // Focus camera target directly onto the tile center, setting zoom radius close up
+      // Focus camera pivot directly on the unit tile center
       if (tileCenter) {
-        this.cameraController.setTarget(tileCenter, 6.5);
+        this.cameraController.setTarget(tileCenter, 5.0);
       }
     }
 
@@ -45,7 +45,6 @@ export class PlanetView extends BaseView {
   }
 
   private renderSingleTile(face: number, u: number, v: number): THREE.Vector3 {
-    // Clear old tile mesh if re-entered
     while (this.tileGroup.children.length > 0) {
       this.tileGroup.remove(this.tileGroup.children[0]);
     }
@@ -53,12 +52,9 @@ export class PlanetView extends BaseView {
     const tileCenter = getTileCenter(face, u, v, this.subdivision, this.planetRadius);
     const boundaryPoints = getTileVertices(face, u, v, this.subdivision, this.planetRadius);
 
-    // Build triangulated geometry from center out to boundary vertices (Fan layout)
     const positions: number[] = [];
     for (let i = 0; i < boundaryPoints.length; i++) {
       const nextIdx = (i + 1) % boundaryPoints.length;
-      
-      // Triangle: Center -> Boundary[i] -> Boundary[i+1]
       positions.push(
         tileCenter.x, tileCenter.y, tileCenter.z,
         boundaryPoints[i].x, boundaryPoints[i].y, boundaryPoints[i].z,
@@ -78,9 +74,8 @@ export class PlanetView extends BaseView {
 
     const tileMesh = new THREE.Mesh(geometry, material);
 
-    // Add wireframe outline around tile edge
     const lineGeo = new THREE.BufferGeometry().setFromPoints([...boundaryPoints, boundaryPoints[0]]);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffcc, linewidth: 2 });
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffcc });
     const wireframe = new THREE.Line(lineGeo, lineMat);
 
     this.tileGroup.add(tileMesh);
@@ -112,7 +107,6 @@ export class PlanetView extends BaseView {
         const unitMesh = this.createUnitMarker(unit);
         unitMesh.position.copy(position);
 
-        // Align unit height axis along sphere surface normal
         const normal = position.clone().normalize();
         unitMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
 
@@ -123,7 +117,7 @@ export class PlanetView extends BaseView {
 
   private createUnitMarker(unit: Unit): THREE.Mesh {
     const geometry = new THREE.CylinderGeometry(0.08, 0.2, 0.5, 8);
-    geometry.translate(0, 0.25, 0); // Position base on tile surface
+    geometry.translate(0, 0.25, 0);
     const material = new THREE.MeshStandardMaterial({ color: 0xffaa00 });
     return new THREE.Mesh(geometry, material);
   }
