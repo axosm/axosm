@@ -59,3 +59,57 @@ export function getTileCenter(
   // Normalize to push outwards to the sphere surface, then scale by radius
   return pointOnTriangle.normalize().multiplyScalar(radius);
 }
+
+/**
+ * Checks if a grid coordinate represents one of the 12 pentagon centers.
+ */
+export function isPentagonTile(u: number, v: number, subdivision: number): boolean {
+  return (
+    (u === 0 && v === 0) ||
+    (u === subdivision && v === 0) ||
+    (u === 0 && v === subdivision)
+  );
+}
+
+/**
+ * Generates boundary 3D vertices for a single Goldberg tile on the sphere surface.
+ */
+export function getTileVertices(
+  face: number,
+  u: number,
+  v: number,
+  subdivision: number,
+  radius: number
+): THREE.Vector3[] {
+  const isPentagon = isPentagonTile(u, v, subdivision);
+  const numSides = isPentagon ? 5 : 6;
+  const center = getTileCenter(face, u, v, subdivision, radius);
+
+  // Derive an orthonormal basis on the tangent plane at the tile center
+  const normal = center.clone().normalize();
+  let up = Math.abs(normal.y) > 0.99 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+  const tangentX = new THREE.Vector3().crossVectors(up, normal).normalize();
+  const tangentY = new THREE.Vector3().crossVectors(normal, tangentX).normalize();
+
+  // Estimate tile radius based on planet radius and grid subdivision scale
+  const tileRadius = (radius * (Math.PI / 2)) / (subdivision * 1.5);
+
+  const vertices: THREE.Vector3[] = [];
+  for (let i = 0; i < numSides; i++) {
+    const angle = (i * 2 * Math.PI) / numSides;
+    const x = Math.cos(angle) * tileRadius;
+    const y = Math.sin(angle) * tileRadius;
+
+    // Offset point from center along local tangent plane and project back to sphere radius
+    const vertex = center
+      .clone()
+      .addScaledVector(tangentX, x)
+      .addScaledVector(tangentY, y)
+      .normalize()
+      .multiplyScalar(radius);
+
+    vertices.push(vertex);
+  }
+
+  return vertices;
+}

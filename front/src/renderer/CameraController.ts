@@ -27,6 +27,15 @@ constructor(camera: THREE.PerspectiveCamera, canvas: HTMLElement) {
     this.bindEvents();
   }
 
+
+  public setTarget(newTarget: THREE.Vector3, newRadius?: number) {
+    this.target.copy(newTarget);
+    if (newRadius !== undefined) {
+      this.spherical.radius = newRadius;
+    }
+    this.updateCamera();
+  }
+  
   private updateCamera() {
     this.camera.position.setFromSpherical(this.spherical).add(this.target);
     this.camera.lookAt(this.target);

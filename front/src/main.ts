@@ -65,7 +65,7 @@ class App {
       [ViewMode.UNIVERSE, new UniverseView()],
       [ViewMode.GALAXY, new GalaxyView()],
       [ViewMode.SYSTEM, new SystemView()],
-      [ViewMode.PLANET, new PlanetView()]
+      [ViewMode.PLANET, new PlanetView(this.cameraController)]
     ]);
 
     this.transitionManager = new TransitionManager(this.cameraController);
