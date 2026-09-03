@@ -1,4 +1,5 @@
 use crate::dto::building::BuildingDto;
+use crate::dto::tile::TileDto;
 use crate::dto::unit::UnitDto;
 use serde::Serialize;
 
@@ -8,4 +9,5 @@ pub struct GameStateDto {
     pub username: String,
     pub units: Vec<UnitDto>,
     pub buildings: Vec<BuildingDto>,
+    pub tiles: Vec<TileDto>
 }

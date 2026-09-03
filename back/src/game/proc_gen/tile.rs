@@ -34,7 +34,7 @@ impl TileType {
 }
 
 #[derive(Debug, Clone)]
-pub struct DynamicTileProperties {
+pub struct Tile {
     pub face: u8,
     pub u: u32,
     pub v: u32,
@@ -73,7 +73,7 @@ pub fn calculate_tile_properties(
     face: u8,
     u: u32,
     v: u32,
-) -> DynamicTileProperties {
+) -> Tile {
     let tile_seed = derive_seed(planet_seed, TILE_TAG, &[face as i64, u as i64, v as i64]);
     let (sx, sy, sz) = goldberg_to_unit_sphere(face, u, v, subdivision);
 
@@ -137,7 +137,7 @@ pub fn calculate_tile_properties(
         None
     };
 
-    DynamicTileProperties {
+    Tile {
         face,
         u,
         v,

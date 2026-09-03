@@ -1,7 +1,7 @@
 use crate::game::proc_gen::galaxy::Galaxy;
 use crate::game::proc_gen::planet::Planet;
 use crate::game::proc_gen::star_system::{BodyType, OrbitalBody, StarSystem};
-use crate::game::proc_gen::tile::{DynamicTileProperties, TileType};
+use crate::game::proc_gen::tile::{Tile, TileType};
 use crate::game::proc_gen::universe::should_spawn_galaxy;
 use crate::maths::spiral_3d::Spiral3D;
 
@@ -10,7 +10,7 @@ pub struct StartingLocation {
     pub galaxy: Galaxy,
     pub star_system: StarSystem,
     pub planet: Planet,
-    pub tile: DynamicTileProperties,
+    pub tile: Tile,
 }
 
 impl StartingLocation {
@@ -21,7 +21,7 @@ impl StartingLocation {
     }
 
     /// Determines if a specific tile is suitable as an initial spawn point.
-    fn is_viable_start_tile(tile: &DynamicTileProperties) -> bool {
+    fn is_viable_start_tile(tile: &Tile) -> bool {
         // Player should start on hospitable land (e.g., Plains or Forest)
         matches!(tile.tile_type, TileType::Plains | TileType::Forest)
     }

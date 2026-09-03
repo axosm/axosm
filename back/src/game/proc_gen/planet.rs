@@ -1,6 +1,6 @@
 use crate::game::proc_gen::seed::{PLANET_TAG, derive_seed};
 use crate::game::proc_gen::tile::{
-    DynamicTileProperties, calculate_tile_properties, get_hex_neighbors,
+    Tile, calculate_tile_properties, get_hex_neighbors,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,7 +67,7 @@ impl Planet {
     }
 
     /// Query exact physical state for a single tile on demand.
-    pub fn query_tile(&self, face: u8, u: u32, v: u32) -> DynamicTileProperties {
+    pub fn query_tile(&self, face: u8, u: u32, v: u32) -> Tile {
         calculate_tile_properties(
             self.seed,
             self.is_in_habitable_zone,
@@ -85,7 +85,7 @@ impl Planet {
         face: u8,
         u: u32,
         v: u32,
-    ) -> (DynamicTileProperties, Vec<DynamicTileProperties>) {
+    ) -> (Tile, Vec<Tile>) {
         let center = self.query_tile(face, u, v);
         let neighbor_coords = get_hex_neighbors(face, u, v, self.subdivision);
 

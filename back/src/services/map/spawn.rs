@@ -25,7 +25,7 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
 
         // Re-fetch elements cleanly to populate DTO surface mapping
         units = units_repo::fetch_player_units(pool, player_id).await?;
-        buildings = buildings_repo::fetch_player_buildings(pool, player_id).await?;
+        // buildings = buildings_repo::fetch_player_buildings(pool, player_id).await?;
     }
 
     Ok(GameStateDto {
@@ -33,5 +33,6 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
         username: player.username,
         units: units.into_iter().map(Into::into).collect(),
         buildings: buildings.into_iter().map(Into::into).collect(),
+        tiles: https://share.gemini.google/kmPwL4VTfWV6
     })
 }
