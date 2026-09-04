@@ -5,3 +5,4 @@ pub mod player_state_repo;
 pub mod players_repo;
 pub mod star_systems_repo;
 pub mod units_repo;
+pub mod tiles_repo;
