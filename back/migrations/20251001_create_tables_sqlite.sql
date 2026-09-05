@@ -227,10 +227,12 @@ CREATE TABLE buildings (
   id                   INTEGER  PRIMARY KEY AUTOINCREMENT,
   player_id            INTEGER  NOT NULL REFERENCES players(id),
   building_type        TEXT     NOT NULL,
-  tile_id              INTEGER  NOT NULL REFERENCES planet_tiles(id),
-  level                INTEGER  NOT NULL DEFAULT 1,
 
-  -- HP
+  planet_id            INTEGER  NOT NULL REFERENCES planets(id),
+  tile_id              INTEGER  NOT NULL REFERENCES planet_tiles(id),
+
+
+  level                INTEGER  NOT NULL DEFAULT 1,
   hp                   INTEGER  NOT NULL,
   max_hp               INTEGER  NOT NULL, -- = building_types.base_hp × level (denormalised for perf)
   under_attack         INTEGER  NOT NULL DEFAULT 0,  -- 1 = repair paused
@@ -245,17 +247,18 @@ CREATE TABLE buildings (
   construction_done_at TEXT,
 
   created_at           TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-  updated_at           TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  updated_at           TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 
   -- One building per tile
-  UNIQUE(tile_id)
+  -- UNIQUE(tile_id)
 );
 
-CREATE INDEX idx_buildings_player      ON buildings(player_id);
-CREATE INDEX idx_buildings_tile        ON buildings(tile_id);
-CREATE INDEX idx_buildings_under_attack ON buildings(under_attack) WHERE under_attack = 1;
-CREATE INDEX idx_buildings_destroyed   ON buildings(destroyed_at)  WHERE destroyed_at IS NOT NULL;
-CREATE INDEX idx_buildings_flying      ON buildings(flight_state)  WHERE flight_state != 'grounded';
+CREATE INDEX idx_buildings_player       ON buildings(player_id);
+CREATE INDEX idx_buildings_planet       ON buildings(planet_id);
+CREATE INDEX idx_buildings_tile         ON buildings(tile_id);
+CREATE INDEX idx_buildings_under_attack ON buildings(under_attack)  WHERE under_attack = 1;
+CREATE INDEX idx_buildings_destroyed    ON buildings(destroyed_at)  WHERE destroyed_at IS NOT NULL;
+CREATE INDEX idx_buildings_flying       ON buildings(flight_state)  WHERE flight_state != 'grounded';
 
 
 -- ─────────────────────────────────────────────────────────────

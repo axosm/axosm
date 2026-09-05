@@ -29,7 +29,6 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
     }
 
     // 2. Resolve Active Planet Target
-    // Determines primary planet ID from units first, falling back to buildings
     let primary_planet_id = units
         .first()
         .and_then(|u| u.planet_id)
@@ -40,25 +39,38 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
 
     if let Some(target_planet_id) = primary_planet_id {
         // Collect coordinates from units on this planet
-        for unit in units.iter().filter(|u| u.planet_id == Some(target_planet_id)) {
-            let neighbors = goldberg::get_tile_neighbors_in_radius(
-                unit.planet_face as u8,
-                unit.planet_u as u32,
-                unit.planet_v as u32,
-                VISION_RADIUS,
-            );
-            visible_coords.extend(neighbors);
+        for unit in units.iter() {
+            if let (Some(planet_id), Some(face), Some(u), Some(v)) = (
+                unit.planet_id,
+                unit.planet_face,
+                unit.planet_u,
+                unit.planet_v,
+            ) {
+                if planet_id == target_planet_id {
+                    let neighbors = goldberg::get_tile_neighbors_in_radius(
+                        face as u8,
+                        u as u32,
+                        v as u32,
+                        VISION_RADIUS,
+                    );
+                    visible_coords.extend(neighbors);
+                }
+            }
         }
 
         // Collect coordinates from buildings on this planet
-        for building in buildings.iter().filter(|b| b.planet_id == target_planet_id) {
-            let neighbors = goldberg::get_tile_neighbors_in_radius(
-                building.face as u8,
-                building.u as u32,
-                building.v as u32,
-                VISION_RADIUS,
-            );
-            visible_coords.extend(neighbors);
+        for building in buildings.iter() {
+            if let (Some(face), Some(u), Some(v)) = (building.face, building.u, building.v) {
+                if building.planet_id == target_planet_id {
+                    let neighbors = goldberg::get_tile_neighbors_in_radius(
+                        face as u8,
+                        u as u32,
+                        v as u32,
+                        VISION_RADIUS,
+                    );
+                    visible_coords.extend(neighbors);
+                }
+            }
         }
 
         visible_coords.sort_unstable();
@@ -76,6 +88,6 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
         username: player.username,
         units: units.into_iter().map(Into::into).collect(),
         buildings: buildings.into_iter().map(Into::into).collect(),
-        tiles: tiles.into_iter().map(Into::into).collect(),
+        tiles: tiles.into_iter().map(|tile| tile.into()).collect(), // Or implement From<TileRow> for TileDto
     })
 }

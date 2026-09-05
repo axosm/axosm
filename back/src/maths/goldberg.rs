@@ -1,6 +1,7 @@
 
 /// Returns (face, u, v) coordinates within vision radius of a given origin tile.
 pub fn get_tile_neighbors_in_radius(
+    // FIXME missing n? (note: m=n)
     face: u8, 
     u: u32, 
     v: u32, 

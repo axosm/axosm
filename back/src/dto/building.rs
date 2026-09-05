@@ -5,7 +5,15 @@ pub struct BuildingDto {
     pub id: i64,
     pub building_type: String,
     pub tile_id: i64,
+    pub planet_id: i64,
     pub level: i32,
     pub hp: i32,
     pub max_hp: i32,
+    pub can_fly: bool,
+    pub flight_state: Option<String>,
+
+    // Tile coordinates joined from planet_tiles
+    pub face: Option<i32>,
+    pub u: Option<i32>,
+    pub v: Option<i32>,
 }
