@@ -8,6 +8,7 @@ use sqlx::SqlitePool;
 use anyhow::Result;
 use tokio::sync::broadcast;
 use tracing_subscriber::FmtSubscriber;
+use tower_http::trace::TraceLayer;
 
 use crate::handlers;
 
@@ -94,5 +95,9 @@ pub fn router(state: Arc<AppState>) -> Router {
         // .route("/api/state/:player_id", get(api::state::get_state))
         // .route("/api/move", post(api::move_unit::handler))
         // .route("/api/events", get(api::events::handler))
+        .layer(TraceLayer::new_for_http())
         .with_state(state)
 }
+
+continue here
+https://gemini.google.com/app/dcd387a31a126814

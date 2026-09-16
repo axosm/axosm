@@ -102,7 +102,7 @@ println!("weqiwueqi 3");
 
 println!("weqiwueqi 4");
     // 5. Spawn Initial Headquarters Building
-    buildings_repo::create_building(tx, player_id, "colony_hub", tile_id, 1000, 1000).await?;
+    buildings_repo::create_building(tx, player_id, "colony_hub", planet_id, tile_id, 1000, 1000).await?;
 
     // 6. Spawn Initial Explorer Unit on the starting tile
     units_repo::create_surface_unit(

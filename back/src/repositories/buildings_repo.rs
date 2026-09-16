@@ -42,16 +42,18 @@ pub async fn create_building(
     tx: &mut Transaction<'_, Sqlite>,
     player_id: i64,
     building_type: &str,
+    planet_id: i64,
     tile_id: i64,
     hp: i32,
     max_hp: i32,
 ) -> Result<i64> {
     let res = sqlx::query(
-        "INSERT INTO buildings (player_id, building_type, tile_id, hp, max_hp)
+        "INSERT INTO buildings (player_id, building_type, planet_id, tile_id, hp, max_hp)
          VALUES (?, ?, ?, ?, ?)",
     )
     .bind(player_id)
     .bind(building_type)
+    .bind(planet_id)
     .bind(tile_id)
     .bind(hp)
     .bind(max_hp)
