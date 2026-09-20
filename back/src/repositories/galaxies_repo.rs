@@ -17,7 +17,8 @@ pub async fn insert_galaxy(
     .bind(y)
     .bind(z)
     .fetch_one(&mut **tx)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in insert_galaxy: {:?}", e))?;
 
     Ok(galaxy)
 }

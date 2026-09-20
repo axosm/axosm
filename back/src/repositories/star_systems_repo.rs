@@ -19,7 +19,8 @@ pub async fn insert_star_system(
     .bind(y)
     .bind(z)
     .fetch_one(&mut **tx)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in insert_star_system: {:?}", e))?;
 
     // let planet_id: i64 = sqlx::query_scalar(
     //     "INSERT INTO planets (star_system_id, seed, x, y, subdivision) VALUES (?, ?, ?, ?, 0) ON CONFLICT DO UPDATE SET id=id RETURNING id"

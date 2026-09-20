@@ -6,7 +6,8 @@ pub async fn fetch_player_units(pool: &SqlitePool, player_id: i64) -> Result<Vec
     let units = sqlx::query_as::<_, UnitRow>("SELECT * FROM units WHERE player_id = ?")
         .bind(player_id)
         .fetch_all(pool)
-        .await?;
+        .await
+        .inspect_err(|e| tracing::error!("Database error in fetch_player_units: {:?}", e))?;
     Ok(units)
 }
 
@@ -42,7 +43,8 @@ pub async fn create_surface_unit(
     .bind(v as i32)
     .bind(hp)
     .execute(&mut **tx)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in create_surface_unit: {:?}", e))?;
 
     Ok(res.last_insert_rowid())
 }

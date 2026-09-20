@@ -28,7 +28,7 @@ pub async fn fetch_tiles_by_coordinates(
 
     // Build a dynamic query matching (face, u, v) tuples
     let mut query_builder = sqlx::QueryBuilder::new(
-        "SELECT id, planet_id, face, u, v, tile_type, yield_quality, rare_deposit, owner_player_id FROM planet_tiles WHERE planet_id = "
+        "SELECT id, planet_id, face, u, v, tile_type, yield_quality, rare_deposit, owner_player_id, influence_recalc_needed, created_at, updated_at FROM planet_tiles WHERE planet_id = "
     );
     query_builder.push_bind(planet_id);
     query_builder.push(" AND (face, u, v) IN ");
@@ -41,7 +41,8 @@ pub async fn fetch_tiles_by_coordinates(
 
     let tiles = query_builder.build_query_as::<TileRow>()
         .fetch_all(pool)
-        .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in fetch_tiles_by_coordinates: {:?}", e))?;
 
     Ok(tiles)
 }

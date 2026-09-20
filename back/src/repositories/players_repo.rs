@@ -6,6 +6,7 @@ pub async fn fetch_player_by_id(pool: &SqlitePool, player_id: i64) -> Result<Pla
     let player = sqlx::query_as::<_, PlayerRow>("SELECT * FROM players WHERE id = ?")
         .bind(player_id)
         .fetch_one(pool)
-        .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in fetch_player_by_id: {:?}", e))?;
     Ok(player)
 }

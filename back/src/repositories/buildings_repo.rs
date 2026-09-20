@@ -33,7 +33,8 @@ pub async fn fetch_player_buildings(
     )
     .bind(player_id)
     .fetch_all(pool)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in fetch_player_buildings: {:?}", e))?;
 
     Ok(buildings)
 }
@@ -49,7 +50,7 @@ pub async fn create_building(
 ) -> Result<i64> {
     let res = sqlx::query(
         "INSERT INTO buildings (player_id, building_type, planet_id, tile_id, hp, max_hp)
-         VALUES (?, ?, ?, ?, ?)",
+         VALUES (?, ?, ?, ?, ?, ?)",
     )
     .bind(player_id)
     .bind(building_type)
@@ -58,7 +59,8 @@ pub async fn create_building(
     .bind(hp)
     .bind(max_hp)
     .execute(&mut **tx)
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in create_building: {:?}", e))?;
 
     Ok(res.last_insert_rowid())
 }

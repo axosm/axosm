@@ -97,12 +97,14 @@ println!("weqiwueqi 3");
     .bind(spawn.tile.rare_deposit)
     .bind(player_id)
     .execute(&mut **tx)
-    .await?
+    .await
+    .inspect_err(|e| tracing::error!("Failed to insert planet tile: {:?}", e))?
     .last_insert_rowid();
 
 println!("weqiwueqi 4");
-    // 5. Spawn Initial Headquarters Building
-    buildings_repo::create_building(tx, player_id, "colony_hub", planet_id, tile_id, 1000, 1000).await?;
+    // // 5. Spawn Initial Headquarters Building
+    // Note : no starting building
+    // buildings_repo::create_building(tx, player_id, "colony_hub", planet_id, tile_id, 1000, 1000).await?;
 
     // 6. Spawn Initial Explorer Unit on the starting tile
     units_repo::create_surface_unit(
@@ -115,7 +117,8 @@ println!("weqiwueqi 4");
         spawn.tile.v,
         100,
     )
-    .await?;
+    .await
+    .inspect_err(|e| tracing::error!("Database error in insert_galaxy: {:?}", e))?;
 
     Ok(())
 }
