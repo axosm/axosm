@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+
+use crate::db::tile::TileRow;
 // src/spawns.rs
 use crate::dto::state::GameStateDto;
 use crate::game::game_init;
@@ -77,10 +80,47 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
         visible_coords.dedup();
     }
 
+    println!("All visible coords: {:?}", visible_coords);
+
     // 4. Fetch Tiles for active coords
-    let tiles = match primary_planet_id {
+    let fetched_tiles = match primary_planet_id {
         Some(planet_id) => tiles_repo::fetch_tiles_by_coordinates(pool, planet_id, &visible_coords).await?,
         None => Vec::new(),
+    };
+
+
+    // 5. Merge Strategy: Map DB states over visible math coordinates
+    let mut tile_map: HashMap<(u8, u32, u32), TileRow> = fetched_tiles
+        .into_iter()
+        .map(|t| ((t.face as u8, t.u as u32, t.v as u32), t))
+        .collect();
+
+    let final_tiles: Vec<_> = if let Some(planet_id) = primary_planet_id {
+        visible_coords
+            .iter()
+            .map(|&(face, u, v)| {
+                // If the tile exists in the database, use it. 
+                // Otherwise, generate a virtual/default procedural tile row on the fly.
+                tile_map.remove(&(face, u, v)).unwrap_or_else(|| {
+                    TileRow {
+                        id: -1, // Marker for unpersisted/pristine terrain
+                        planet_id,
+                        face: face as i64,
+                        u: u as i64,
+                        v: v as i64,
+                        tile_type: "standard".to_string(), // Default procedural biome/terrain type
+                        yield_quality: 1.0,
+                        rare_deposit: None,
+                        owner_player_id: None,
+                        influence_recalc_needed: false,
+                        created_at: String::new(),
+                        updated_at: String::new(),
+                    }
+                })
+            })
+            .collect()
+    } else {
+        Vec::new()
     };
 
     Ok(GameStateDto {
@@ -88,6 +128,6 @@ pub async fn load_or_initialize_player(pool: &SqlitePool, player_id: i64) -> Res
         username: player.username,
         units: units.into_iter().map(Into::into).collect(),
         buildings: buildings.into_iter().map(Into::into).collect(),
-        tiles: tiles.into_iter().map(|tile| tile.into()).collect(), // Or implement From<TileRow> for TileDto
+        tiles: final_tiles.into_iter().map(|tile| tile.into()).collect(), // Or implement From<TileRow> for TileDto
     })
 }

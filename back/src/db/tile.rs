@@ -12,7 +12,7 @@ pub struct TileRow {
     pub yield_quality: f64,
     pub rare_deposit: Option<String>,
     pub owner_player_id: Option<i64>,
-    pub influence_recalc_needed: i64,
+    pub influence_recalc_needed: bool,
     pub created_at: String,
     pub updated_at: String,
 }
