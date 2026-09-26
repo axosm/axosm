@@ -1,7 +1,7 @@
 // renderer/views/PlanetView.ts
 import * as THREE from 'three';
 import { BaseView } from './BaseView';
-import { GameState, Unit } from '../../api/api';
+import { GameState, Unit, PlanetTile } from '../../api/api';
 import { getTileCenter, getTileVertices } from '../math/GoldbergUtils';
 import { CameraController } from '../CameraController';
 
@@ -20,68 +20,88 @@ export class PlanetView extends BaseView {
   }
 
   public onEnter(data: GameState): void {
-    if (!data || !Array.isArray(data.units) || data.units.length === 0) return;
+    if (!data) return;
 
-    const primaryUnit = data.units[0];
-    if (
-      primaryUnit.location_mode === 'planet_surface' &&
-      typeof primaryUnit.planet_face === 'number' &&
-      typeof primaryUnit.planet_u === 'number' &&
-      typeof primaryUnit.planet_v === 'number'
-    ) {
-      const tileCenter = this.renderSingleTile(
-        primaryUnit.planet_face,
-        primaryUnit.planet_u,
-        primaryUnit.planet_v
-      );
-
-      // Focus camera pivot directly on the unit tile center
-      if (tileCenter) {
-        this.cameraController.setTarget(tileCenter, 5.0);
-      }
+    // 1. Render all tiles provided in the state
+    if (Array.isArray(data.tiles)) {
+      this.renderTiles(data.tiles);
     }
 
-    this.renderUnits(data.units);
+    // 2. Focus camera on the primary unit if available
+    if (Array.isArray(data.units) && data.units.length > 0) {
+      const primaryUnit = data.units[0];
+      if (
+        primaryUnit.location_mode === 'planet_surface' &&
+        typeof primaryUnit.planet_face === 'number' &&
+        typeof primaryUnit.planet_u === 'number' &&
+        typeof primaryUnit.planet_v === 'number'
+      ) {
+        const tileCenter = getTileCenter(
+          primaryUnit.planet_face,
+          primaryUnit.planet_u,
+          primaryUnit.planet_v,
+          this.subdivision,
+            this.planetRadius
+        );
+        this.cameraController.setTarget(tileCenter, 5.0);
+      }
+      this.renderUnits(data.units);
+    }
   }
 
-  private renderSingleTile(face: number, u: number, v: number): THREE.Vector3 {
+  public renderTiles(tiles: PlanetTile[]): void {
+    // Clear old tiles
     while (this.tileGroup.children.length > 0) {
       this.tileGroup.remove(this.tileGroup.children[0]);
     }
 
-    const tileCenter = getTileCenter(face, u, v, this.subdivision, this.planetRadius);
-    const boundaryPoints = getTileVertices(face, u, v, this.subdivision, this.planetRadius);
+    tiles.forEach((tile) => {
+      const tileCenter = getTileCenter(tile.face, tile.u, tile.v, this.subdivision, this.planetRadius);
+      const boundaryPoints = getTileVertices(tile.face, tile.u, tile.v, this.subdivision, this.planetRadius);
 
-    const positions: number[] = [];
-    for (let i = 0; i < boundaryPoints.length; i++) {
-      const nextIdx = (i + 1) % boundaryPoints.length;
-      positions.push(
-        tileCenter.x, tileCenter.y, tileCenter.z,
-        boundaryPoints[i].x, boundaryPoints[i].y, boundaryPoints[i].z,
-        boundaryPoints[nextIdx].x, boundaryPoints[nextIdx].y, boundaryPoints[nextIdx].z
-      );
-    }
+      const positions: number[] = [];
+      for (let i = 0; i < boundaryPoints.length; i++) {
+        const nextIdx = (i + 1) % boundaryPoints.length;
+        positions.push(
+          tileCenter.x, tileCenter.y, tileCenter.z,
+          boundaryPoints[i].x, boundaryPoints[i].y, boundaryPoints[i].z,
+          boundaryPoints[nextIdx].x, boundaryPoints[nextIdx].y, boundaryPoints[nextIdx].z
+        );
+      }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.computeVertexNormals();
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.computeVertexNormals();
 
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x2e8b57,
-      side: THREE.DoubleSide,
-      roughness: 0.8,
+      // Customize color based on tile properties
+      let tileColor = 0x2e8b57; // Default Sea/Standard color
+      if (tile.tile_type === 'plains') {
+        tileColor = 0x558b2f; 
+      }
+      
+      // Highlight owned tiles (e.g., player territory tint)
+      if (tile.owner_player_id !== null) {
+        tileColor = 0x1976d2; // Blue tint for player-owned territory
+      }
+
+      const material = new THREE.MeshStandardMaterial({
+        color: tileColor,
+        side: THREE.DoubleSide,
+        roughness: 0.8,
+      });
+
+      const tileMesh = new THREE.Mesh(geometry, material);
+
+      // Outline wireframe
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([...boundaryPoints, boundaryPoints[0]]);
+      const lineMat = new THREE.LineBasicMaterial({ 
+        color: tile.owner_player_id !== null ? 0x64b5f6 : 0x00ffcc 
+      });
+      const wireframe = new THREE.Line(lineGeo, lineMat);
+
+      this.tileGroup.add(tileMesh);
+      this.tileGroup.add(wireframe);
     });
-
-    const tileMesh = new THREE.Mesh(geometry, material);
-
-    const lineGeo = new THREE.BufferGeometry().setFromPoints([...boundaryPoints, boundaryPoints[0]]);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffcc });
-    const wireframe = new THREE.Line(lineGeo, lineMat);
-
-    this.tileGroup.add(tileMesh);
-    this.tileGroup.add(wireframe);
-
-    return tileCenter;
   }
 
   public renderUnits(units: Unit[]): void {
@@ -125,3 +145,6 @@ export class PlanetView extends BaseView {
   public update(delta: number): void {}
   public onLeave(): void {}
 }
+
+bug on overlapping tiles
+https://gemini.google.com/app/15eb5c73fedd0c1f
